@@ -25,6 +25,8 @@ webstore-project/
 
 ### Server Setup
 
+Copy `server/config.example.js` to `server/config.js`, add desired credentials
+
 ```bash
 cd webstore-project/server
 npm install
@@ -39,7 +41,7 @@ npm install
 chmod +x wstore.js
 
 # Test with:
-./wstore.js --baseUrl=http://localhost:4500/ get some/path
+./wstore.js --baseUrl=http://localhost:4500/ get hello.txt
 ```
 
 ## Production Deployment
@@ -50,8 +52,10 @@ chmod +x wstore.js
    ```bash
    ln -s /etc/nginx/sites-available/webstorage.conf /etc/nginx/sites-enabled/
    ```
-4. Update configuration in `config.js` or set environment variables for production settings
-5. Install the client globally with `npm install -g` from the client directory or use it directly
+4. Test new nginx config : `sudo nginx -t`
+5. Restart nginx : `sudo systemctl nginx restart`
+6. Update configuration in `config.js` or set environment variables for production settings
+7. Install the client globally with `npm install -g` from the client directory or use it directly
 
 ## Server Features
 
