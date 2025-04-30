@@ -13,9 +13,10 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 class WStoreClient {
-    constructor(baseUrl, auth = null) {
+    constructor(baseUrl, auth = null, options = {}) {
         this.baseUrl = baseUrl
         this.auth = auth
+        this.options = options
     }
 
     async get(remoteFilePath, localFilePath) {
@@ -31,20 +32,32 @@ class WStoreClient {
                 throw new Error(`HTTP error! Status: ${response.status}, Message: ${await response.text()}`)
             }
 
-            if (localFilePath) {
+            // If include headers option is set, display response headers
+            if (this.options.include) {
+                console.log('HTTP Response Headers:')
+                for (const [key, value] of response.headers.entries()) {
+                    console.log(`${key}: ${value}`)
+                }
+                console.log() // Empty line after headers
+            }
+
+            // Handle output based on options and arguments
+            const outputFile = this.options.output || localFilePath
+
+            if (outputFile) {
                 // Ensure directory exists
-                const dir = path.dirname(localFilePath)
+                const dir = path.dirname(outputFile)
                 if (!fs.existsSync(dir)) {
                     fs.mkdirSync(dir, { recursive: true })
                 }
 
                 // Save file
-                const fileStream = fs.createWriteStream(localFilePath)
+                const fileStream = fs.createWriteStream(outputFile)
                 response.body.pipe(fileStream)
 
                 return new Promise((resolve, reject) => {
                     fileStream.on('finish', () => {
-                        console.log(`File saved to ${localFilePath}`)
+                        console.log(`File saved to ${outputFile}`)
                         resolve()
                     })
                     fileStream.on('error', reject)
@@ -77,11 +90,28 @@ class WStoreClient {
                 headers: this._getHeaders('DELETE')
             })
 
+            // If include headers option is set, display response headers
+            if (this.options.include) {
+                console.log('HTTP Response Headers:')
+                for (const [key, value] of response.headers.entries()) {
+                    console.log(`${key}: ${value}`)
+                }
+                console.log() // Empty line after headers
+            }
+
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}, Message: ${await response.text()}`)
             }
 
-            console.log(`File ${remoteFilePath} deleted successfully`)
+            const responseText = await response.text()
+
+            if (this.options.output) {
+                // Write the response to the output file
+                fs.writeFileSync(this.options.output, responseText)
+                console.log(`Response saved to ${this.options.output}`)
+            } else {
+                console.log(`File ${remoteFilePath} deleted successfully`)
+            }
         } catch (error) {
             console.error(`Error deleting file: ${error.message}`)
             process.exit(1)
@@ -95,11 +125,8 @@ class WStoreClient {
         }
 
         const url = new URL(remoteFilePath, this.baseUrl)
-
-        // Fix: Force content type to application/octet-stream to prevent automatic JSON parsing
+        // Use octet-stream to prevent automatic JSON parsing
         const contentType = 'application/octet-stream'
-
-        // Read file content as a Buffer
         const fileContent = fs.readFileSync(localFilePath)
 
         try {
@@ -112,11 +139,28 @@ class WStoreClient {
                 body: fileContent
             })
 
+            // If include headers option is set, display response headers
+            if (this.options.include) {
+                console.log('HTTP Response Headers:')
+                for (const [key, value] of response.headers.entries()) {
+                    console.log(`${key}: ${value}`)
+                }
+                console.log() // Empty line after headers
+            }
+
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}, Message: ${await response.text()}`)
             }
 
-            console.log(`File ${localFilePath} ${method === 'POST' ? 'created' : 'updated'} successfully at ${remoteFilePath}`)
+            const responseText = await response.text()
+
+            if (this.options.output) {
+                // Write the response to the output file
+                fs.writeFileSync(this.options.output, responseText)
+                console.log(`Response saved to ${this.options.output}`)
+            } else {
+                console.log(`File ${localFilePath} ${method === 'POST' ? 'created' : 'updated'} successfully at ${remoteFilePath}`)
+            }
         } catch (error) {
             console.error(`Error ${method === 'POST' ? 'creating' : 'updating'} file: ${error.message}`)
             process.exit(1)
@@ -152,6 +196,17 @@ yargs(hideBin(process.argv))
         description: 'Basic auth credentials in format username:password',
         type: 'string'
     })
+    .option('include', {
+        alias: 'i',
+        description: 'Include protocol response headers in the output',
+        type: 'boolean',
+        default: false
+    })
+    .option('output', {
+        alias: 'o',
+        description: 'Write to file instead of stdout',
+        type: 'string'
+    })
     .command('get <remote> [local]', 'Download a file from the server',
         (yargs) => {
             yargs
@@ -165,7 +220,10 @@ yargs(hideBin(process.argv))
                 })
         },
         (argv) => {
-            const client = new WStoreClient(argv.baseUrl, argv.auth)
+            const client = new WStoreClient(argv.baseUrl, argv.auth, {
+                include: argv.include,
+                output: argv.output
+            })
             client.get(argv.remote, argv.local)
         }
     )
@@ -182,7 +240,10 @@ yargs(hideBin(process.argv))
                 })
         },
         (argv) => {
-            const client = new WStoreClient(argv.baseUrl, argv.auth)
+            const client = new WStoreClient(argv.baseUrl, argv.auth, {
+                include: argv.include,
+                output: argv.output
+            })
             client.post(argv.local, argv.remote)
         }
     )
@@ -199,7 +260,10 @@ yargs(hideBin(process.argv))
                 })
         },
         (argv) => {
-            const client = new WStoreClient(argv.baseUrl, argv.auth)
+            const client = new WStoreClient(argv.baseUrl, argv.auth, {
+                include: argv.include,
+                output: argv.output
+            })
             client.put(argv.local, argv.remote)
         }
     )
@@ -212,7 +276,10 @@ yargs(hideBin(process.argv))
                 })
         },
         (argv) => {
-            const client = new WStoreClient(argv.baseUrl, argv.auth)
+            const client = new WStoreClient(argv.baseUrl, argv.auth, {
+                include: argv.include,
+                output: argv.output
+            })
             client.delete(argv.remote)
         }
     )
@@ -220,6 +287,8 @@ yargs(hideBin(process.argv))
     .example('$0 put ./local/doc.pdf files/doc.pdf', 'Upload a file')
     .example('$0 delete files/oldfile.txt', 'Delete a file')
     .example('$0 --baseUrl=http://example.com/files --auth=user:pass get image.jpg', 'Use custom server and auth')
+    .example('$0 get -i files/config.json', 'Get a file and show response headers')
+    .example('$0 get files/data.json -o ./output.json', 'Get a file and save to specific output location')
     .demandCommand(1, 'You need at least one command before moving on')
     .help()
     .alias('help', 'h')

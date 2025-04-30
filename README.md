@@ -1,9 +1,24 @@
 # wstore
 
-A simple Node.js HTTP server and command-line client for file storage and retrieval.
+A simple Node.js HTTP server and command-line client for file storage and retrieval. Supports HTTP GET, POST, PUT, DELETE with HTTP Basic aunthetication.
+
+**tl;dr**
 
 ```bash
-./wstore.js --baseUrl=$BASE_URL --auth=$AUTH post ./test.json tests/test.json
+BASE_URL="http://localhost:4500/"
+AUTH="admin:password"
+
+./wstore.js --baseUrl=$BASE_URL --auth=$AUTH post ./hello.json tests/hello.json
+# File ./hello.json created successfully at tests/hello.json
+
+./wstore.js -i get tests/hello.json
+# HTTP Response Headers:
+# content-type: application/json
+# ...
+# { "hello" : "world" }
+
+./wstore.js -h
+# // see for yourself
 ```
 
 ## Client Usage
