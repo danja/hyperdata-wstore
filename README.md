@@ -189,26 +189,7 @@ Once installed globally with `npm install -g`, you can use the client without th
 wstore --baseUrl=http://hyperdata.it/files get documents/report.pdf
 ```
 
-## Project Structure
-
-```
-webstore-project/
-│
-├── server/                      # Server application
-│   ├── package.json             # Server dependencies
-│   ├── WebStore.js              # Main server application
-│   ├── config.js                # Server configuration
-│   └── storage/                 # Default storage directory (created by the app)
-│
-├── client/                      # Command line client
-│   ├── package.json             # Client dependencies
-│   └── wstore.js                # Client application
-│
-└── nginx/                       # NGINX configuration (for reference during dev)
-    └── webstorage.conf          # Will be moved to /etc/nginx/sites-available/ in production
-```
-
-## Development Setup
+## Installation
 
 ### Server Setup
 
@@ -222,16 +203,17 @@ node WebStore.js
 
 ### Client Setup
 
-```bash
+````bash
 cd webstore-project/client
 npm install
 chmod +x wstore.js
 
-# Test with:
+#### Test with:
+```sh
 ./wstore.js --baseUrl=http://localhost:4500/ get hello.txt
-```
+````
 
-## Production Deployment
+## Deployment
 
 1. Copy the server directory to your server location
 2. Copy the nginx configuration to `/etc/nginx/sites-available/`
@@ -257,3 +239,22 @@ chmod +x wstore.js
 - Support for GET, POST, PUT, DELETE operations
 - Maps between local files and server resources
 - Authentication support
+
+## Project Structure
+
+```
+webstore-project/
+│
+├── server/                      # Server application
+│   ├── package.json             # Server dependencies
+│   ├── WebStore.js              # Main server application
+│   ├── config.js                # Server configuration
+│   └── storage/                 # Default storage directory (created by the app)
+│
+├── client/                      # Command line client
+│   ├── package.json             # Client dependencies
+│   └── wstore.js                # Client application
+│
+└── nginx/                       # NGINX configuration (for reference during dev)
+    └── webstorage.conf          # Will be moved to /etc/nginx/sites-available/ in production
+```
