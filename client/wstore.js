@@ -51,7 +51,7 @@ class WStoreClient {
                     fs.mkdirSync(dir, { recursive: true })
                 }
 
-                // Save file
+                // Get response as buffer for binary compatibility
                 const buffer = await response.buffer()
                 fs.writeFileSync(outputFile, buffer)
                 console.log(`File saved to ${outputFile}`)
@@ -118,7 +118,7 @@ class WStoreClient {
         }
 
         const url = new URL(remoteFilePath, this.baseUrl)
-        // Use octet-stream to prevent automatic JSON parsing
+        // Use octet-stream for consistent binary handling
         const contentType = 'application/octet-stream'
         const fileContent = fs.readFileSync(localFilePath)
 
@@ -173,116 +173,129 @@ class WStoreClient {
     }
 }
 
-// Parse command line arguments
-yargs(hideBin(process.argv))
-    .scriptName('wstore')
-    .usage('$0 <cmd> [args]')
-    .env('WSTORE')
-    .option('baseUrl', {
-        alias: 'b',
-        description: 'Base URL for the WebStore server',
-        type: 'string',
-        default: 'http://localhost:4500/'
-    })
-    .option('auth', {
-        alias: 'a',
-        description: 'Basic auth credentials in format username:password',
-        type: 'string'
-    })
-    .option('include', {
-        alias: 'i',
-        description: 'Include protocol response headers in the output',
-        type: 'boolean',
-        default: false
-    })
-    .option('output', {
-        alias: 'o',
-        description: 'Write to file instead of stdout',
-        type: 'string'
-    })
-    .command('get <remote> [local]', 'Download a file from the server',
-        (yargs) => {
-            yargs
-                .positional('remote', {
-                    describe: 'Remote file path',
-                    type: 'string'
+// Add buffer() method to Response prototype for testing
+if (!Response.prototype.buffer) {
+    Response.prototype.buffer = function () {
+        return this.arrayBuffer().then(arr => Buffer.from(arr))
+    }
+}
+
+// Only parse arguments when run directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+    // Parse command line arguments
+    yargs(hideBin(process.argv))
+        .scriptName('wstore')
+        .usage('$0 <cmd> [args]')
+        .env('WSTORE')
+        .option('baseUrl', {
+            alias: 'b',
+            description: 'Base URL for the WebStore server',
+            type: 'string',
+            default: 'http://localhost:4500/'
+        })
+        .option('auth', {
+            alias: 'a',
+            description: 'Basic auth credentials in format username:password',
+            type: 'string'
+        })
+        .option('include', {
+            alias: 'i',
+            description: 'Include protocol response headers in the output',
+            type: 'boolean',
+            default: false
+        })
+        .option('output', {
+            alias: 'o',
+            description: 'Write to file instead of stdout',
+            type: 'string'
+        })
+        .command('get <remote> [local]', 'Download a file from the server',
+            (yargs) => {
+                yargs
+                    .positional('remote', {
+                        describe: 'Remote file path',
+                        type: 'string'
+                    })
+                    .positional('local', {
+                        describe: 'Local file path to save the downloaded file',
+                        type: 'string'
+                    })
+            },
+            (argv) => {
+                const client = new WStoreClient(argv.baseUrl, argv.auth, {
+                    include: argv.include,
+                    output: argv.output
                 })
-                .positional('local', {
-                    describe: 'Local file path to save the downloaded file',
-                    type: 'string'
+                client.get(argv.remote, argv.local)
+            }
+        )
+        .command('post <local> <remote>', 'Create a new file on the server',
+            (yargs) => {
+                yargs
+                    .positional('local', {
+                        describe: 'Local file path to upload',
+                        type: 'string'
+                    })
+                    .positional('remote', {
+                        describe: 'Remote file path to create',
+                        type: 'string'
+                    })
+            },
+            (argv) => {
+                const client = new WStoreClient(argv.baseUrl, argv.auth, {
+                    include: argv.include,
+                    output: argv.output
                 })
-        },
-        (argv) => {
-            const client = new WStoreClient(argv.baseUrl, argv.auth, {
-                include: argv.include,
-                output: argv.output
-            })
-            client.get(argv.remote, argv.local)
-        }
-    )
-    .command('post <local> <remote>', 'Create a new file on the server',
-        (yargs) => {
-            yargs
-                .positional('local', {
-                    describe: 'Local file path to upload',
-                    type: 'string'
+                client.post(argv.local, argv.remote)
+            }
+        )
+        .command('put <local> <remote>', 'Create or update a file on the server',
+            (yargs) => {
+                yargs
+                    .positional('local', {
+                        describe: 'Local file path to upload',
+                        type: 'string'
+                    })
+                    .positional('remote', {
+                        describe: 'Remote file path to update',
+                        type: 'string'
+                    })
+            },
+            (argv) => {
+                const client = new WStoreClient(argv.baseUrl, argv.auth, {
+                    include: argv.include,
+                    output: argv.output
                 })
-                .positional('remote', {
-                    describe: 'Remote file path to create',
-                    type: 'string'
+                client.put(argv.local, argv.remote)
+            }
+        )
+        .command('delete <remote>', 'Delete a file from the server',
+            (yargs) => {
+                yargs
+                    .positional('remote', {
+                        describe: 'Remote file path to delete',
+                        type: 'string'
+                    })
+            },
+            (argv) => {
+                const client = new WStoreClient(argv.baseUrl, argv.auth, {
+                    include: argv.include,
+                    output: argv.output
                 })
-        },
-        (argv) => {
-            const client = new WStoreClient(argv.baseUrl, argv.auth, {
-                include: argv.include,
-                output: argv.output
-            })
-            client.post(argv.local, argv.remote)
-        }
-    )
-    .command('put <local> <remote>', 'Create or update a file on the server',
-        (yargs) => {
-            yargs
-                .positional('local', {
-                    describe: 'Local file path to upload',
-                    type: 'string'
-                })
-                .positional('remote', {
-                    describe: 'Remote file path to update',
-                    type: 'string'
-                })
-        },
-        (argv) => {
-            const client = new WStoreClient(argv.baseUrl, argv.auth, {
-                include: argv.include,
-                output: argv.output
-            })
-            client.put(argv.local, argv.remote)
-        }
-    )
-    .command('delete <remote>', 'Delete a file from the server',
-        (yargs) => {
-            yargs
-                .positional('remote', {
-                    describe: 'Remote file path to delete',
-                    type: 'string'
-                })
-        },
-        (argv) => {
-            const client = new WStoreClient(argv.baseUrl, argv.auth, {
-                include: argv.include,
-                output: argv.output
-            })
-            client.delete(argv.remote)
-        }
-    )
-    .example('$0 get files/image.jpg ./downloads/image.jpg', 'Download a file')
-    .example('$0 put ./local/doc.pdf files/doc.pdf', 'Upload a file')
-    .example('$0 delete files/oldfile.txt', 'Delete a file')
-    .example('$0 --baseUrl=http://example.com/files --auth=user:pass get image.jpg', 'Use custom server and auth')
-    .example('$0 get -i files/config.json', 'Get a file and show response headers')
-    .example('$0 get files/data.json -o ./output.json', 'Get a file and save to specific output location')
-    .demandCommand(1, 'You need at least one command before moving on')
-    .help()
-    .alias('help', 'h')
-    .argv
+                client.delete(argv.remote)
+            }
+        )
+        .example('$0 get files/image.jpg ./downloads/image.jpg', 'Download a file')
+        .example('$0 put ./local/doc.pdf files/doc.pdf', 'Upload a file')
+        .example('$0 delete files/oldfile.txt', 'Delete a file')
+        .example('$0 --baseUrl=http://example.com/files --auth=user:pass get image.jpg', 'Use custom server and auth')
+        .example('$0 get -i files/config.json', 'Get a file and show response headers')
+        .example('$0 get files/data.json -o ./output.json', 'Get a file and save to specific output location')
+        .demandCommand(1, 'You need at least one command before moving on')
+        .help()
+        .alias('help', 'h')
+        .argv
+}
+
+// Export for testing
+export { WStoreClient }

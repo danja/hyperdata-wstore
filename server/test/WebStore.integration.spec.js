@@ -2,8 +2,6 @@ import fs from 'fs'
 import path from 'path'
 import request from 'supertest'
 import { fileURLToPath } from 'url'
-import express from 'express'
-import basicAuth from 'express-basic-auth'
 
 import {
   createTestStorageDir,
@@ -12,126 +10,20 @@ import {
   fileExists,
   readTestFile
 } from './helpers/test-helper.js'
+import app from '../WebStore.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const TEST_STORAGE_DIR = path.join(__dirname, 'test-storage')
 
-// Create app for integration testing
-function createIntegrationApp() {
-  const app = express()
-  const config = {
-    storageDir: TEST_STORAGE_DIR,
-    username: 'testuser',
-    password: 'testpass'
-  }
-
-  // Apply middleware and routes similar to WebStore.js
-  app.use(express.raw({
-    type: '*/*',
-    limit: '50mb'
-  }))
-
-  // These parsers will only be used after the raw parser
-  app.use(express.json())
-  app.use(express.urlencoded({ extended: true }))
-
-  // Authentication middleware
-  const requireAuth = basicAuth({
-    users: { [config.username]: config.password },
-    challenge: true,
-    unauthorizedResponse: 'Authentication required'
-  })
-
-  // GET route
-  app.get('/:filepath(*)', (req, res) => {
-    const filepath = req.params.filepath
-    const fullPath = path.join(config.storageDir, filepath)
-
-    if (!fs.existsSync(fullPath)) {
-      return res.status(404).send('File not found')
-    }
-
-    const stats = fs.statSync(fullPath)
-    if (stats.isDirectory()) {
-      fs.readdir(fullPath, (err, files) => {
-        if (err) {
-          return res.status(500).send('Error reading directory')
-        }
-        res.json({ files })
-      })
-    } else {
-      const fileStream = fs.createReadStream(fullPath)
-      fileStream.pipe(res)
-    }
-  })
-
-  // POST route
-  app.post('/:filepath(*)', requireAuth, (req, res) => {
-    const filepath = req.params.filepath
-    const fullPath = path.join(config.storageDir, filepath)
-
-    if (fs.existsSync(fullPath)) {
-      return res.status(409).send('File already exists')
-    }
-
-    const dir = path.dirname(fullPath)
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true })
-    }
-
-    try {
-      fs.writeFileSync(fullPath, req.body)
-      res.status(201).send('File created')
-    } catch (err) {
-      res.status(500).send(`Error creating file: ${err.message}`)
-    }
-  })
-
-  // PUT route
-  app.put('/:filepath(*)', requireAuth, (req, res) => {
-    const filepath = req.params.filepath
-    const fullPath = path.join(config.storageDir, filepath)
-
-    const dir = path.dirname(fullPath)
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true })
-    }
-
-    try {
-      fs.writeFileSync(fullPath, req.body)
-      res.send('File updated')
-    } catch (err) {
-      res.status(500).send(`Error updating file: ${err.message}`)
-    }
-  })
-
-  // DELETE route
-  app.delete('/:filepath(*)', requireAuth, (req, res) => {
-    const filepath = req.params.filepath
-    const fullPath = path.join(config.storageDir, filepath)
-
-    if (!fs.existsSync(fullPath)) {
-      return res.status(404).send('File not found')
-    }
-
-    try {
-      fs.unlinkSync(fullPath)
-      res.send('File deleted')
-    } catch (err) {
-      res.status(500).send(`Error deleting file: ${err.message}`)
-    }
-  })
-
-  return app
-}
-
 describe('WebStore Integration Tests', () => {
-  let app
-
   beforeAll(() => {
-    // Remove any existing test directory to start fresh
-    removeTestStorageDir()
+    // Set environment variables for testing
+    process.env.NODE_ENV = 'test'
+    process.env.STORAGE_DIR = TEST_STORAGE_DIR
+    process.env.AUTH_USERNAME = 'testuser'
+    process.env.AUTH_PASSWORD = 'testpass'
+
     // Create test storage directory
     createTestStorageDir()
   })
@@ -139,12 +31,15 @@ describe('WebStore Integration Tests', () => {
   afterAll(() => {
     // Remove test storage directory
     removeTestStorageDir()
+
+    // Reset environment variables
+    delete process.env.NODE_ENV
+    delete process.env.STORAGE_DIR
+    delete process.env.AUTH_USERNAME
+    delete process.env.AUTH_PASSWORD
   })
 
   beforeEach(() => {
-    // Create app
-    app = createIntegrationApp()
-
     // Create fresh test files for each test
     createTestFile('existing-file.txt', 'This is an existing file for testing')
     createTestFile('directory/nested-file.txt', 'This is a nested file')

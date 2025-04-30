@@ -12,182 +12,14 @@ import {
   fileExists,
   readTestFile
 } from './helpers/test-helper.js'
+import { WStoreClient } from '../wstore.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Create a test module with the WStoreClient class for testing
-class WStoreClient {
-  constructor(baseUrl, auth = null, options = {}) {
-    this.baseUrl = baseUrl
-    this.auth = auth
-    this.options = options
-  }
-
-  async get(remoteFilePath, localFilePath) {
-    const url = new URL(remoteFilePath, this.baseUrl)
-
-    try {
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: this._getHeaders('GET')
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}, Message: ${await response.text()}`)
-      }
-
-      // If include headers option is set, display response headers
-      if (this.options.include) {
-        console.log('HTTP Response Headers:')
-        for (const [key, value] of response.headers.entries()) {
-          console.log(`${key}: ${value}`)
-        }
-        console.log() // Empty line after headers
-      }
-
-      // Handle output based on options and arguments
-      const outputFile = this.options.output || localFilePath
-
-      if (outputFile) {
-        // Ensure directory exists
-        const dir = path.dirname(outputFile)
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true })
-        }
-
-        // For tests, use a simpler approach than streaming
-        const buffer = await response.arrayBuffer()
-        fs.writeFileSync(outputFile, Buffer.from(buffer))
-        console.log(`File saved to ${outputFile}`)
-      } else {
-        // Display content if no output file specified
-        const content = await response.text()
-        console.log(content)
-      }
-    } catch (error) {
-      console.error(`Error getting file: ${error.message}`)
-      process.exit(1)
-    }
-  }
-
-  async post(localFilePath, remoteFilePath) {
-    return this._sendFile('POST', localFilePath, remoteFilePath)
-  }
-
-  async put(localFilePath, remoteFilePath) {
-    return this._sendFile('PUT', localFilePath, remoteFilePath)
-  }
-
-  async delete(remoteFilePath) {
-    const url = new URL(remoteFilePath, this.baseUrl)
-
-    try {
-      const response = await fetch(url.toString(), {
-        method: 'DELETE',
-        headers: this._getHeaders('DELETE')
-      })
-
-      // If include headers option is set, display response headers
-      if (this.options.include) {
-        console.log('HTTP Response Headers:')
-        for (const [key, value] of response.headers.entries()) {
-          console.log(`${key}: ${value}`)
-        }
-        console.log() // Empty line after headers
-      }
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}, Message: ${await response.text()}`)
-      }
-
-      const responseText = await response.text()
-
-      if (this.options.output) {
-        // Write the response to the output file
-        fs.writeFileSync(this.options.output, responseText)
-        console.log(`Response saved to ${this.options.output}`)
-      } else {
-        console.log(`File ${remoteFilePath} deleted successfully`)
-      }
-    } catch (error) {
-      console.error(`Error deleting file: ${error.message}`)
-      process.exit(1)
-    }
-  }
-
-  async _sendFile(method, localFilePath, remoteFilePath) {
-    if (!fs.existsSync(localFilePath)) {
-      console.error(`Local file ${localFilePath} not found`)
-      process.exit(1)
-    }
-
-    const url = new URL(remoteFilePath, this.baseUrl)
-    // Use octet-stream to prevent automatic JSON parsing
-    const contentType = 'application/octet-stream'
-    const fileContent = fs.readFileSync(localFilePath)
-
-    try {
-      const response = await fetch(url.toString(), {
-        method,
-        headers: {
-          ...this._getHeaders(method),
-          'Content-Type': contentType
-        },
-        body: fileContent
-      })
-
-      // If include headers option is set, display response headers
-      if (this.options.include) {
-        console.log('HTTP Response Headers:')
-        for (const [key, value] of response.headers.entries()) {
-          console.log(`${key}: ${value}`)
-        }
-        console.log() // Empty line after headers
-      }
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}, Message: ${await response.text()}`)
-      }
-
-      const responseText = await response.text()
-
-      if (this.options.output) {
-        // Write the response to the output file
-        fs.writeFileSync(this.options.output, responseText)
-        console.log(`Response saved to ${this.options.output}`)
-      } else {
-        console.log(`File ${localFilePath} ${method === 'POST' ? 'created' : 'updated'} successfully at ${remoteFilePath}`)
-      }
-    } catch (error) {
-      console.error(`Error ${method === 'POST' ? 'creating' : 'updating'} file: ${error.message}`)
-      process.exit(1)
-    }
-  }
-
-  _getHeaders(method) {
-    const headers = {}
-
-    // Add auth header for write operations
-    if (this.auth && (method === 'PUT' || method === 'POST' || method === 'DELETE')) {
-      const base64Auth = Buffer.from(this.auth).toString('base64')
-      headers['Authorization'] = `Basic ${base64Auth}`
-    }
-
-    return headers
-  }
-}
-
-// Mock fetch for testing with proper buffer handling
-global.fetch = async (url, options) => {
-  // This will be mocked by nock, but ensure we handle the responses correctly
-  throw new Error('Fetch not mocked for this URL: ' + url)
-}
-
-// Add a buffer method to Response prototype for tests
-Response.prototype.buffer = async function () {
-  const arrayBuffer = await this.arrayBuffer()
-  return Buffer.from(arrayBuffer)
+// Add buffer method to Response prototype for tests
+Response.prototype.buffer = function () {
+  return this.arrayBuffer().then(arr => Buffer.from(arr))
 }
 
 describe('WStoreClient Unit Tests', () => {
@@ -204,8 +36,8 @@ describe('WStoreClient Unit Tests', () => {
     })
 
     // Intercept console methods
-    spyOn(console, 'log')
-    spyOn(console, 'error')
+    spyOn(console, 'log').and.callThrough()
+    spyOn(console, 'error').and.callThrough()
     spyOn(process, 'exit').and.callFake(() => { })
   })
 

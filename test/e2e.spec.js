@@ -1,8 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { execSync, spawn } from 'child_process'
-import { createServer } from 'http'
+import { execSync } from 'child_process'
+import http from 'http'
 import app from '../server/WebStore.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -15,10 +15,8 @@ const CLIENT_DIR = path.join(PROJECT_ROOT, 'client')
 const TEST_DIR = path.join(PROJECT_ROOT, 'test')
 const E2E_TEMP_DIR = path.join(TEST_DIR, 'e2e-temp')
 const E2E_STORAGE_DIR = path.join(E2E_TEMP_DIR, 'storage')
-const TEST_CONFIG_PATH = path.join(E2E_TEMP_DIR, 'config.js')
 
 // Server and client paths
-const SERVER_PATH = path.join(SERVER_DIR, 'WebStore.js')
 const CLIENT_PATH = path.join(CLIENT_DIR, 'wstore.js')
 
 // Test configuration
@@ -50,18 +48,21 @@ describe('End-to-End Tests', () => {
       'This is an existing file in the storage directory'
     )
 
-    // Set environment variables
+    // Set environment variables for the server
     process.env.NODE_ENV = 'test'
+    process.env.PORT = TEST_PORT
     process.env.STORAGE_DIR = E2E_STORAGE_DIR
     process.env.AUTH_USERNAME = TEST_USERNAME
     process.env.AUTH_PASSWORD = TEST_PASSWORD
-    process.env.PORT = TEST_PORT
 
     // Start the server
-    server = app.listen(TEST_PORT)
-
-    // Wait a moment for server to fully start
-    await new Promise(resolve => setTimeout(resolve, 500))
+    server = http.createServer(app)
+    await new Promise(resolve => {
+      server.listen(TEST_PORT, () => {
+        console.log(`Test server running on port ${TEST_PORT}`)
+        resolve()
+      })
+    })
   })
 
   afterAll(() => {
@@ -77,10 +78,10 @@ describe('End-to-End Tests', () => {
 
     // Reset environment variables
     delete process.env.NODE_ENV
+    delete process.env.PORT
     delete process.env.STORAGE_DIR
     delete process.env.AUTH_USERNAME
     delete process.env.AUTH_PASSWORD
-    delete process.env.PORT
   })
 
   describe('Basic Operations', () => {
@@ -170,7 +171,7 @@ describe('End-to-End Tests', () => {
     })
 
     it('should PUT a file to create it if it does not exist', () => {
-      const { local, content } = TEST_FILES.binaryFile
+      const { local } = TEST_FILES.binaryFile
 
       // Execute PUT command
       const output = execSync(

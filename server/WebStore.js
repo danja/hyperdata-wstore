@@ -1,4 +1,3 @@
-// WebStore.js - HTTP server for file storage using Express
 import express from 'express'
 import fs from 'fs'
 import path from 'path'
@@ -10,29 +9,34 @@ import { config } from './config.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const app = express()
+// Constants
 const PORT = process.env.PORT || 4500
-const STORAGE_DIR = config.storageDir || path.join(__dirname, 'storage')
+const STORAGE_DIR = process.env.STORAGE_DIR || config.storageDir || path.join(__dirname, 'storage')
+const USERNAME = process.env.AUTH_USERNAME || config.username
+const PASSWORD = process.env.AUTH_PASSWORD || config.password
+
+// Create Express app
+const app = express()
 
 // Ensure storage directory exists
 if (!fs.existsSync(STORAGE_DIR)) {
     fs.mkdirSync(STORAGE_DIR, { recursive: true })
 }
 
-// Basic authentication middleware for PUT, POST and DELETE
+// Basic authentication middleware
 const requireAuth = basicAuth({
-    users: { [config.username]: config.password },
+    users: { [USERNAME]: PASSWORD },
     challenge: true,
     unauthorizedResponse: 'Authentication required'
 })
 
-// Parse raw body for all content types
+// Process raw body first (important for binary data)
 app.use(express.raw({
     type: '*/*',
     limit: '50mb'
 }))
 
-// These parsers will only be used for routes that aren't handled by the raw parser
+// Standard parsers for specific content types
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
@@ -45,7 +49,6 @@ app.get('/:filepath(*)', (req, res) => {
         return res.status(404).send('File not found')
     }
 
-    // Check if file or directory
     const stats = fs.statSync(fullPath)
     if (stats.isDirectory()) {
         fs.readdir(fullPath, (err, files) => {
@@ -70,19 +73,16 @@ app.post('/:filepath(*)', requireAuth, (req, res) => {
     const filepath = req.params.filepath
     const fullPath = path.join(STORAGE_DIR, filepath)
 
-    // Check if file already exists
     if (fs.existsSync(fullPath)) {
         return res.status(409).send('File already exists')
     }
 
-    // Ensure directory exists
     const dir = path.dirname(fullPath)
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true })
     }
 
     try {
-        // With raw parser first, req.body should be a Buffer
         fs.writeFileSync(fullPath, req.body)
         res.status(201).send('File created')
     } catch (err) {
@@ -95,14 +95,12 @@ app.put('/:filepath(*)', requireAuth, (req, res) => {
     const filepath = req.params.filepath
     const fullPath = path.join(STORAGE_DIR, filepath)
 
-    // Ensure directory exists
     const dir = path.dirname(fullPath)
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true })
     }
 
     try {
-        // With raw parser first, req.body should be a Buffer
         fs.writeFileSync(fullPath, req.body)
         res.send('File updated')
     } catch (err) {
@@ -127,10 +125,13 @@ app.delete('/:filepath(*)', requireAuth, (req, res) => {
     }
 })
 
-if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test') {
-    app.listen(PORT, () => {
+// Start the server when not in test mode
+if (process.env.NODE_ENV !== 'test') {
+    const server = app.listen(PORT, () => {
         console.log(`WebStore server running on port ${PORT}`)
+        console.log(`Storage directory: ${STORAGE_DIR}`)
     })
 }
 
+// Export the app for testing
 export default app

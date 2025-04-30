@@ -1,24 +1,22 @@
 {
-    "name": "wstore",
-    "version": "1.0.0",
-    "description": "Command-line client for WebStore",
-    "main": "wstore.js",
-    "type": "module",
-    "bin": {
-      "wstore": "./wstore.js"
-    },
-    "scripts": {
-      "start": "node wstore.js",
-      "test": "node --experimental-vm-modules node_modules/.bin/jasmine"
-    },
-    "dependencies": {
-      "mime-types": "^2.1.35",
-      "node-fetch": "^3.3.2",
-      "yargs": "^17.7.2"
-    },
-    "devDependencies": {
-      "jasmine": "^5.1.0",
-      "nock": "^13.4.0",
-      "mock-fs": "^5.2.0"
-    }
+  "name": "wstore",
+  "version": "1.0.0",
+  "description": "Command-line client for WebStore",
+  "main": "wstore.js",
+  "type": "module",
+  "bin": {
+    "wstore": "./wstore.js"
+  },
+  "scripts": {
+    "start": "node wstore.js",
+    "test": "jasmine --config=jasmine.json "
+  },
+  "dependencies": {
+    "mime-types": "^2.1.35",
+    "node-fetch": "^3.3.2",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "nock": "^13.4.0"
   }
+}

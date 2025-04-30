@@ -1,21 +1,19 @@
 {
-    "name": "webstore",
-    "version": "1.0.0",
-    "description": "HTTP server for file storage",
-    "main": "WebStore.js",
-    "type": "module",
-    "scripts": {
-      "start": "node WebStore.js",
-      "test": "node --experimental-vm-modules node_modules/.bin/jasmine"
-    },
-    "dependencies": {
-      "express": "^4.18.2",
-      "express-basic-auth": "^1.2.1",
-      "mime-types": "^2.1.35"
-    },
-    "devDependencies": {
-      "jasmine": "^5.1.0",
-      "supertest": "^6.3.4",
-      "mock-fs": "^5.2.0"
-    }
+  "name": "webstore-project",
+  "version": "1.0.0",
+  "description": "WebStore server and client with testing suite",
+  "type": "module",
+  "scripts": {
+    "test": "jasmine --config=jasmine.json",
+    "test:server": "cd server && npm test",
+    "test:client": "cd client && npm test",
+    "test:e2e": "node --experimental-vm-modules ./node_modules/jasmine/bin/jasmine.js test/e2e.spec.js",
+    "test:individual": "node run-individual-tests.js",
+    "start:server": "cd server && npm start",
+    "start:client": "cd client && npm start"
+  },
+  "devDependencies": {
+    "jasmine": "^5.1.0",
+    "mock-fs": "^5.5.0"
   }
+}

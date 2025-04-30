@@ -9,47 +9,26 @@ const TEST_TEMP_DIR = path.join(__dirname, '..', 'temp')
 
 // Helper to set up mock file system
 export function setupMockFileSystem() {
-  // Ensure any real directories needed by the tests exist before mocking
+  // Create a real directory first (needed for path resolution)
   if (!fs.existsSync(TEST_TEMP_DIR)) {
     fs.mkdirSync(TEST_TEMP_DIR, { recursive: true })
   }
 
-  // Create a mock file system for testing with more realistic content
+  // Apply mock filesystem
   mockFs({
     [TEST_TEMP_DIR]: {
       'local-file.txt': 'This is a local file for testing',
       'local-file.json': JSON.stringify({ test: 'data' }),
       'binary-file.bin': Buffer.from([0x00, 0x01, 0x02, 0x03])
     },
-    // Add output directory that tests will write to
-    'output': {},
-    // Add a node_modules mock to prevent errors with module resolution during testing
-    'node_modules': mockFs.directory({
-      mode: 0o755,
-      items: {
-        'mock-fs': mockFs.directory({
-          items: mockFs.load(path.resolve(__dirname, '../../../node_modules/mock-fs'))
-        }),
-        'nock': mockFs.directory({
-          items: mockFs.load(path.resolve(__dirname, '../../../node_modules/nock'))
-        })
-      }
-    })
+    // Keep node_modules available
+    'node_modules': mockFs.load(path.resolve(__dirname, '../../../node_modules'))
   })
 }
 
 // Helper to clean up the mock file system
 export function cleanupMockFileSystem() {
   mockFs.restore()
-
-  // Optional: Clean up real test directory after tests
-  if (fs.existsSync(TEST_TEMP_DIR)) {
-    try {
-      fs.rmSync(TEST_TEMP_DIR, { recursive: true, force: true })
-    } catch (err) {
-      console.warn(`Warning: Could not remove test directory: ${err.message}`)
-    }
-  }
 }
 
 // Helper to create test temp directory
@@ -63,7 +42,11 @@ export function createTestTempDir() {
 // Helper to remove test temp directory
 export function removeTestTempDir() {
   if (fs.existsSync(TEST_TEMP_DIR)) {
-    fs.rmSync(TEST_TEMP_DIR, { recursive: true, force: true })
+    try {
+      fs.rmSync(TEST_TEMP_DIR, { recursive: true, force: true })
+    } catch (err) {
+      console.error(`Failed to remove ${TEST_TEMP_DIR}:`, err)
+    }
   }
 }
 

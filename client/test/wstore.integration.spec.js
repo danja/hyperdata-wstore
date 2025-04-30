@@ -29,10 +29,6 @@ describe('WStore Client Integration Tests', () => {
     createTestFile('test-data.txt', 'Test data for upload')
     createTestFile('test-data.json', JSON.stringify({ test: 'data' }))
     createTestFile('test-binary.bin', createBinaryTestData(256))
-
-    // Spy on console methods
-    spyOn(console, 'log').and.callThrough()
-    spyOn(console, 'error').and.callThrough()
   })
 
   afterEach(() => {
@@ -65,7 +61,7 @@ describe('WStore Client Integration Tests', () => {
         .reply(200, 'Remote file content')
 
       // Execute the command
-      const outputPath = path.join(__dirname, 'temp', 'test-output.txt')
+      const outputPath = getTestFilePath('test-output.txt')
       const result = safeExecSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} get remote-file.txt ${outputPath}`)
 
       // Verify no error occurred
@@ -146,7 +142,7 @@ describe('WStore Client Integration Tests', () => {
         .reply(200, 'Remote file content')
 
       // Execute the command with environment variables
-      const outputPath = path.join(__dirname, 'temp', 'test-env-output.txt')
+      const outputPath = getTestFilePath('test-env-output.txt')
       const env = {
         ...process.env,
         WSTORE_BASEURL: baseUrl
@@ -190,7 +186,7 @@ describe('WStore Client Integration Tests', () => {
         .reply(200, 'Remote file content')
 
       // Execute the command with -o flag
-      const outputPath = path.join(__dirname, 'temp', 'custom-output.txt')
+      const outputPath = getTestFilePath('custom-output.txt')
       const result = safeExecSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} get remote-file.txt -o ${outputPath}`)
 
       // Verify no error occurred

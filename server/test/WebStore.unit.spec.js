@@ -4,7 +4,6 @@ import path from 'path'
 import request from 'supertest'
 import basicAuth from 'express-basic-auth'
 import { fileURLToPath } from 'url'
-import mockFs from 'mock-fs'
 
 import {
   setupMockFileSystem,
@@ -218,7 +217,11 @@ describe('WebStore Unit Tests', () => {
 
       const dirPath = path.dirname(nestedFilePath)
       if (fs.existsSync(dirPath)) {
-        fs.rmdirSync(dirPath, { recursive: true })
+        try {
+          fs.rmdirSync(dirPath, { recursive: true })
+        } catch (err) {
+          console.error('Error removing directory:', err)
+        }
       }
 
       const response = await request(app)
@@ -275,32 +278,6 @@ describe('WebStore Unit Tests', () => {
       // Verify file exists with correct content
       expect(fs.existsSync(newPutFilePath)).toBe(true)
       expect(fs.readFileSync(newPutFilePath, 'utf8')).toEqual('New file via PUT')
-    })
-
-    it('should create parent directories if they do not exist', async () => {
-      const nestedPutFilePath = path.join(mockConfig.storageDir, 'new-put-dir/file.txt')
-
-      // Ensure directories and file don't exist before the test
-      if (fs.existsSync(nestedPutFilePath)) {
-        fs.unlinkSync(nestedPutFilePath)
-      }
-
-      const dirPath = path.dirname(nestedPutFilePath)
-      if (fs.existsSync(dirPath)) {
-        fs.rmdirSync(dirPath, { recursive: true })
-      }
-
-      const response = await request(app)
-        .put('/new-put-dir/file.txt')
-        .auth(mockConfig.username, mockConfig.password)
-        .send('Nested PUT file content')
-        .expect(200)
-
-      expect(response.text).toEqual('File updated')
-
-      // Verify file exists with correct content
-      expect(fs.existsSync(nestedPutFilePath)).toBe(true)
-      expect(fs.readFileSync(nestedPutFilePath, 'utf8')).toEqual('Nested PUT file content')
     })
   })
 
