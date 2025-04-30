@@ -25,6 +25,57 @@ AUTH="admin:password"
 # // see for yourself
 ```
 
+## Server Features
+
+- HTTP methods: GET, POST, PUT, DELETE
+- HTTP Basic authentication for write operations (PUT, POST, DELETE)
+- Content/media type handling based on file extensions
+- Runs on port 4500
+
+## Client Features
+
+- Object-oriented command-line interface using yargs
+- Support for GET, POST, PUT, DELETE operations
+- Maps between local files and server resources
+- Authentication support
+
+## Installation
+
+### Server Setup
+
+Copy `server/config.example.js` to `server/config.js`, add desired credentials
+
+```bash
+cd webstore-project/server
+npm install
+node WebStore.js
+```
+
+### Client Setup
+
+````bash
+cd webstore-project/client
+npm install
+chmod +x wstore.js
+
+#### Test with:
+```sh
+./wstore.js --baseUrl=http://localhost:4500/ get hello.txt
+````
+
+## Deployment
+
+1. Copy the server directory to your server location
+2. Copy the nginx configuration to `/etc/nginx/sites-available/`
+3. Create a symbolic link:
+   ```bash
+   ln -s /etc/nginx/sites-available/webstorage.conf /etc/nginx/sites-enabled/
+   ```
+4. Test new nginx config : `sudo nginx -t`
+5. Restart nginx : `sudo systemctl nginx restart`
+6. Update configuration in `config.js` or set environment variables for production settings
+7. Install the client globally with `npm install -g` from the client directory or use it directly
+
 ## Client Usage
 
 The following examples demonstrate how to use the `wstore` client with different HTTP methods.
@@ -188,57 +239,6 @@ Once installed globally with `npm install -g`, you can use the client without th
 ```bash
 wstore --baseUrl=http://hyperdata.it/files get documents/report.pdf
 ```
-
-## Installation
-
-### Server Setup
-
-Copy `server/config.example.js` to `server/config.js`, add desired credentials
-
-```bash
-cd webstore-project/server
-npm install
-node WebStore.js
-```
-
-### Client Setup
-
-````bash
-cd webstore-project/client
-npm install
-chmod +x wstore.js
-
-#### Test with:
-```sh
-./wstore.js --baseUrl=http://localhost:4500/ get hello.txt
-````
-
-## Deployment
-
-1. Copy the server directory to your server location
-2. Copy the nginx configuration to `/etc/nginx/sites-available/`
-3. Create a symbolic link:
-   ```bash
-   ln -s /etc/nginx/sites-available/webstorage.conf /etc/nginx/sites-enabled/
-   ```
-4. Test new nginx config : `sudo nginx -t`
-5. Restart nginx : `sudo systemctl nginx restart`
-6. Update configuration in `config.js` or set environment variables for production settings
-7. Install the client globally with `npm install -g` from the client directory or use it directly
-
-## Server Features
-
-- HTTP methods: GET, POST, PUT, DELETE
-- HTTP Basic authentication for write operations (PUT, POST, DELETE)
-- Content/media type handling based on file extensions
-- Runs on port 4500
-
-## Client Features
-
-- Object-oriented command-line interface using yargs
-- Support for GET, POST, PUT, DELETE operations
-- Maps between local files and server resources
-- Authentication support
 
 ## Project Structure
 
