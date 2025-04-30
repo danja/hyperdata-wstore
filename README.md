@@ -2,6 +2,170 @@
 
 A simple Node.js HTTP server and command-line client for file storage and retrieval.
 
+## Client Usage
+
+The following examples demonstrate how to use the `wstore` client with different HTTP methods.
+
+## Setup Variables
+
+For these examples, let's assume:
+
+```bash
+# Server location
+BASE_URL="http://hyperdata.it/files"
+
+# Authentication credentials
+AUTH="admin:password"
+```
+
+## GET Examples
+
+### Download a file to current directory
+
+```bash
+./wstore.js --baseUrl=$BASE_URL get documents/report.pdf ./report.pdf
+```
+
+**Output:**
+
+```
+File saved to ./report.pdf
+```
+
+### Display text file content directly in terminal
+
+```bash
+./wstore.js --baseUrl=$BASE_URL get notes/todo.txt
+```
+
+**Output:**
+
+```
+Buy groceries
+Fix the server
+Call John
+```
+
+### GET with custom location
+
+```bash
+./wstore.js --baseUrl=$BASE_URL get images/logo.png ./downloads/company-logo.png
+```
+
+**Output:**
+
+```
+File saved to ./downloads/company-logo.png
+```
+
+## POST Examples
+
+### Create a new file on the server
+
+```bash
+./wstore.js --baseUrl=$BASE_URL --auth=$AUTH post ./data.json documents/data.json
+```
+
+**Output:**
+
+```
+File ./data.json created successfully at documents/data.json
+```
+
+### POST with environment variables for auth
+
+```bash
+export WSTORE_AUTH="admin:password"
+./wstore.js --baseUrl=$BASE_URL post ./report.docx documents/reports/quarterly.docx
+```
+
+**Output:**
+
+```
+File ./report.docx created successfully at documents/reports/quarterly.docx
+```
+
+## PUT Examples
+
+### Update an existing file
+
+```bash
+./wstore.js --baseUrl=$BASE_URL --auth=$AUTH put ./updated-data.json documents/data.json
+```
+
+**Output:**
+
+```
+File ./updated-data.json updated successfully at documents/data.json
+```
+
+### PUT with different server and explicit authentication
+
+```bash
+./wstore.js --baseUrl="http://otherserver.com/storage" --auth="user:secret" put ./logo-new.png branding/logo.png
+```
+
+**Output:**
+
+```
+File ./logo-new.png updated successfully at branding/logo.png
+```
+
+## DELETE Examples
+
+### Delete a file from the server
+
+```bash
+./wstore.js --baseUrl=$BASE_URL --auth=$AUTH delete documents/old-report.pdf
+```
+
+**Output:**
+
+```
+File documents/old-report.pdf deleted successfully
+```
+
+### DELETE with environment variables
+
+```bash
+export WSTORE_BASEURL="http://hyperdata.it/files"
+export WSTORE_AUTH="admin:password"
+./wstore.js delete temp/cache.json
+```
+
+**Output:**
+
+```
+File temp/cache.json deleted successfully
+```
+
+## Advanced Examples
+
+### Batch operations using shell script
+
+```bash
+#!/bin/bash
+# Sync a directory of images
+
+# Configuration
+WSTORE="./wstore.js --baseUrl=http://hyperdata.it/files --auth=admin:password"
+
+# Upload all PNG files in current directory
+for file in *.png; do
+  $WSTORE put "$file" "images/$file"
+done
+
+echo "All PNG files uploaded"
+```
+
+### Usage with npm global installation
+
+Once installed globally with `npm install -g`, you can use the client without the `.js` extension:
+
+```bash
+wstore --baseUrl=http://hyperdata.it/files get documents/report.pdf
+```
+
 ## Project Structure
 
 ```
