@@ -2,6 +2,10 @@
 
 A simple Node.js HTTP server and command-line client for file storage and retrieval.
 
+```bash
+./wstore.js --baseUrl=$BASE_URL --auth=$AUTH post ./test.json tests/test.json
+```
+
 ## Client Usage
 
 The following examples demonstrate how to use the `wstore` client with different HTTP methods.
@@ -12,7 +16,7 @@ For these examples, let's assume:
 
 ```bash
 # Server location
-BASE_URL="http://hyperdata.it/files"
+BASE_URL="http://localhost:4500/"
 
 # Authentication credentials
 AUTH="admin:password"

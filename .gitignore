@@ -2,6 +2,9 @@
 
 server/config.js
 
+repomix-output.txt
+*repomix*.md 
+
 # Logs
 logs
 *.log

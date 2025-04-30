@@ -95,7 +95,11 @@ class WStoreClient {
         }
 
         const url = new URL(remoteFilePath, this.baseUrl)
-        const contentType = mime.lookup(localFilePath) || 'application/octet-stream'
+
+        // Fix: Force content type to application/octet-stream to prevent automatic JSON parsing
+        const contentType = 'application/octet-stream'
+
+        // Read file content as a Buffer
         const fileContent = fs.readFileSync(localFilePath)
 
         try {

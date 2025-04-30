@@ -26,17 +26,16 @@ const requireAuth = basicAuth({
     unauthorizedResponse: 'Authentication required'
 })
 
-// Parse JSON body
-app.use(express.json())
-
-// Parse URL-encoded bodies
-app.use(express.urlencoded({ extended: true }))
-
-// Parse raw body for PUT and POST requests
+// IMPORTANT FIX: Changed middleware order - raw parser first to handle all content types
+// Parse raw body for all content types
 app.use(express.raw({
     type: '*/*',
     limit: '50mb'
 }))
+
+// These parsers will only be used for routes that aren't handled by the raw parser
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
 // GET - Retrieve a file
 app.get('/:filepath(*)', (req, res) => {
@@ -84,6 +83,7 @@ app.post('/:filepath(*)', requireAuth, (req, res) => {
     }
 
     try {
+        // With raw parser first, req.body should be a Buffer
         fs.writeFileSync(fullPath, req.body)
         res.status(201).send('File created')
     } catch (err) {
@@ -103,6 +103,7 @@ app.put('/:filepath(*)', requireAuth, (req, res) => {
     }
 
     try {
+        // With raw parser first, req.body should be a Buffer
         fs.writeFileSync(fullPath, req.body)
         res.send('File updated')
     } catch (err) {
