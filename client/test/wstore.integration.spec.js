@@ -10,7 +10,8 @@ import {
   getTestFilePath,
   createTestFile,
   fileExists,
-  readTestFile
+  readTestFile,
+  createBinaryTestData
 } from './helpers/test-helper.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -27,10 +28,11 @@ describe('WStore Client Integration Tests', () => {
     // Create test files
     createTestFile('test-data.txt', 'Test data for upload')
     createTestFile('test-data.json', JSON.stringify({ test: 'data' }))
+    createTestFile('test-binary.bin', createBinaryTestData(256))
 
     // Spy on console methods
-    spyOn(console, 'log')
-    spyOn(console, 'error')
+    spyOn(console, 'log').and.callThrough()
+    spyOn(console, 'error').and.callThrough()
   })
 
   afterEach(() => {
@@ -38,6 +40,22 @@ describe('WStore Client Integration Tests', () => {
     cleanupMockFileSystem()
     nock.cleanAll()
   })
+
+  // Helper function to safely execute commands
+  function safeExecSync(command, options = {}) {
+    try {
+      return execSync(command, { stdio: 'pipe', encoding: 'utf8', ...options })
+    } catch (error) {
+      // Return error for test to inspect
+      return {
+        error: true,
+        status: error.status,
+        stdout: error.stdout?.toString() || '',
+        stderr: error.stderr?.toString() || '',
+        message: error.message
+      }
+    }
+  }
 
   describe('Command Line Interface', () => {
     it('should execute GET command correctly', () => {
@@ -47,19 +65,15 @@ describe('WStore Client Integration Tests', () => {
         .reply(200, 'Remote file content')
 
       // Execute the command
-      const outputPath = path.join(__dirname, 'test-output.txt')
-      execSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} get remote-file.txt ${outputPath}`, {
-        stdio: 'pipe'
-      })
+      const outputPath = path.join(__dirname, 'temp', 'test-output.txt')
+      const result = safeExecSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} get remote-file.txt ${outputPath}`)
+
+      // Verify no error occurred
+      expect(result.error).toBeFalsy()
 
       // Verify file was created with correct content
       expect(fs.existsSync(outputPath)).toBeTrue()
       expect(fs.readFileSync(outputPath, 'utf8')).toEqual('Remote file content')
-
-      // Clean up
-      if (fs.existsSync(outputPath)) {
-        fs.unlinkSync(outputPath)
-      }
     })
 
     it('should execute POST command correctly', () => {
@@ -71,21 +85,17 @@ describe('WStore Client Integration Tests', () => {
       // Get local file path
       const localFilePath = getTestFilePath('test-data.txt')
 
-      let error = null
       // Execute the command
-      try {
-        execSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} --auth=testuser:testpass post ${localFilePath} remote-file.txt`, {
-          stdio: 'pipe'
-        })
-      } catch (err) {
-        error = err
-      }
+      const result = safeExecSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} --auth=testuser:testpass post ${localFilePath} remote-file.txt`)
 
       // Verify no error occurred
-      expect(error).toBeNull()
+      expect(result.error).toBeFalsy()
 
       // Verify nock was called correctly
       expect(nock.isDone()).toBeTrue()
+
+      // Verify output contains success message
+      expect(result).toContain('created successfully')
     })
 
     it('should execute PUT command correctly', () => {
@@ -97,21 +107,17 @@ describe('WStore Client Integration Tests', () => {
       // Get local file path
       const localFilePath = getTestFilePath('test-data.txt')
 
-      let error = null
       // Execute the command
-      try {
-        execSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} --auth=testuser:testpass put ${localFilePath} remote-file.txt`, {
-          stdio: 'pipe'
-        })
-      } catch (err) {
-        error = err
-      }
+      const result = safeExecSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} --auth=testuser:testpass put ${localFilePath} remote-file.txt`)
 
       // Verify no error occurred
-      expect(error).toBeNull()
+      expect(result.error).toBeFalsy()
 
       // Verify nock was called correctly
       expect(nock.isDone()).toBeTrue()
+
+      // Verify output contains success message
+      expect(result).toContain('updated successfully')
     })
 
     it('should execute DELETE command correctly', () => {
@@ -120,21 +126,17 @@ describe('WStore Client Integration Tests', () => {
         .delete('/remote-file.txt')
         .reply(200, 'File deleted')
 
-      let error = null
       // Execute the command
-      try {
-        execSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} --auth=testuser:testpass delete remote-file.txt`, {
-          stdio: 'pipe'
-        })
-      } catch (err) {
-        error = err
-      }
+      const result = safeExecSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} --auth=testuser:testpass delete remote-file.txt`)
 
       // Verify no error occurred
-      expect(error).toBeNull()
+      expect(result.error).toBeFalsy()
 
       // Verify nock was called correctly
       expect(nock.isDone()).toBeTrue()
+
+      // Verify output contains success message
+      expect(result).toContain('deleted successfully')
     })
 
     it('should handle environment variables for configuration', () => {
@@ -144,33 +146,20 @@ describe('WStore Client Integration Tests', () => {
         .reply(200, 'Remote file content')
 
       // Execute the command with environment variables
-      const outputPath = path.join(__dirname, 'test-output.txt')
+      const outputPath = path.join(__dirname, 'temp', 'test-env-output.txt')
       const env = {
         ...process.env,
         WSTORE_BASEURL: baseUrl
       }
 
-      let error = null
-      try {
-        execSync(`node ${CLIENT_PATH} get remote-file.txt ${outputPath}`, {
-          stdio: 'pipe',
-          env
-        })
-      } catch (err) {
-        error = err
-      }
+      const result = safeExecSync(`node ${CLIENT_PATH} get remote-file.txt ${outputPath}`, { env })
 
       // Verify no error occurred
-      expect(error).toBeNull()
+      expect(result.error).toBeFalsy()
 
       // Verify file was created with correct content
       expect(fs.existsSync(outputPath)).toBeTrue()
       expect(fs.readFileSync(outputPath, 'utf8')).toEqual('Remote file content')
-
-      // Clean up
-      if (fs.existsSync(outputPath)) {
-        fs.unlinkSync(outputPath)
-      }
     })
 
     it('should include headers in output when --include flag is used', () => {
@@ -183,24 +172,15 @@ describe('WStore Client Integration Tests', () => {
         })
 
       // Execute the command with -i flag
-      let output
-      let error = null
-      try {
-        output = execSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} -i get remote-file.txt`, {
-          stdio: 'pipe',
-          encoding: 'utf8'
-        })
-      } catch (err) {
-        error = err
-      }
+      const result = safeExecSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} -i get remote-file.txt`)
 
       // Verify no error occurred
-      expect(error).toBeNull()
+      expect(result.error).toBeFalsy()
 
       // Verify headers are included in output
-      expect(output).toContain('HTTP Response Headers:')
-      expect(output).toContain('content-type: text/plain')
-      expect(output).toContain('Remote file content')
+      expect(result).toContain('HTTP Response Headers:')
+      expect(result).toContain('content-type: text/plain')
+      expect(result).toContain('Remote file content')
     })
 
     it('should save output to a file when -o option is used', () => {
@@ -210,27 +190,65 @@ describe('WStore Client Integration Tests', () => {
         .reply(200, 'Remote file content')
 
       // Execute the command with -o flag
-      const outputPath = path.join(__dirname, 'custom-output.txt')
-      let error = null
-      try {
-        execSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} get remote-file.txt -o ${outputPath}`, {
-          stdio: 'pipe'
-        })
-      } catch (err) {
-        error = err
-      }
+      const outputPath = path.join(__dirname, 'temp', 'custom-output.txt')
+      const result = safeExecSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} get remote-file.txt -o ${outputPath}`)
 
       // Verify no error occurred
-      expect(error).toBeNull()
+      expect(result.error).toBeFalsy()
 
       // Verify file was created with correct content
       expect(fs.existsSync(outputPath)).toBeTrue()
       expect(fs.readFileSync(outputPath, 'utf8')).toEqual('Remote file content')
+    })
 
-      // Clean up
-      if (fs.existsSync(outputPath)) {
-        fs.unlinkSync(outputPath)
-      }
+    it('should handle binary files correctly', () => {
+      // Create binary test data
+      const binaryData = createBinaryTestData(256)
+      const binaryPath = getTestFilePath('binary-test.bin')
+      fs.writeFileSync(binaryPath, binaryData)
+
+      // Mock the HTTP request to accept and return binary data
+      nock(baseUrl)
+        .put('/binary.bin')
+        .reply(200, 'Binary file uploaded')
+
+      // Execute the command
+      const result = safeExecSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} --auth=testuser:testpass put ${binaryPath} binary.bin`)
+
+      // Verify no error occurred
+      expect(result.error).toBeFalsy()
+
+      // Verify output contains success message
+      expect(result).toContain('updated successfully')
+    })
+
+    it('should handle error responses gracefully', () => {
+      // Mock the HTTP request with an error response
+      nock(baseUrl)
+        .get('/non-existent.txt')
+        .reply(404, 'File not found')
+
+      // Execute the command
+      const result = safeExecSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} get non-existent.txt`)
+
+      // Verify error was caught
+      expect(result.error).toBeTrue()
+      expect(result.stderr).toContain('Error getting file: HTTP error! Status: 404')
+    })
+
+    it('should handle authentication failures gracefully', () => {
+      // Mock the HTTP request with an authentication failure
+      nock(baseUrl)
+        .post('/protected.txt')
+        .reply(401, 'Authentication required')
+
+      // Execute the command
+      const localFilePath = getTestFilePath('test-data.txt')
+      const result = safeExecSync(`node ${CLIENT_PATH} --baseUrl=${baseUrl} --auth=wrong:credentials post ${localFilePath} protected.txt`)
+
+      // Verify error was caught
+      expect(result.error).toBeTrue()
+      expect(result.stderr).toContain('Error creating file: HTTP error! Status: 401')
     })
   })
 })

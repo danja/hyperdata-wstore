@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { execSync } from 'child_process'
-import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -13,101 +12,120 @@ const SERVER_DIR = path.join(ROOT_DIR, 'server')
 const CLIENT_DIR = path.join(ROOT_DIR, 'client')
 const E2E_TEST_DIR = path.join(ROOT_DIR, 'test')
 
-// Ensure all test directories exist
-if (!fs.existsSync(E2E_TEST_DIR)) {
-  fs.mkdirSync(E2E_TEST_DIR, { recursive: true })
+// Terminal colors for better reporting
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  green: '\x1b[32m',
+  red: '\x1b[31m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  cyan: '\x1b[36m'
 }
 
-// Create helpers directories if they don't exist
-const serverHelpersDir = path.join(SERVER_DIR, 'test', 'helpers')
-const clientHelpersDir = path.join(CLIENT_DIR, 'test', 'helpers')
+console.log(`${colors.bright}${colors.cyan}=== WebStore Test Suite Runner ===${colors.reset}`)
 
-if (!fs.existsSync(serverHelpersDir)) {
-  fs.mkdirSync(serverHelpersDir, { recursive: true })
+// Test results tracking
+const testResults = {
+  passed: 0,
+  failed: 0,
+  total: 0
 }
 
-if (!fs.existsSync(clientHelpersDir)) {
-  fs.mkdirSync(clientHelpersDir, { recursive: true })
-}
+// Run a test suite with proper error handling
+function runTestSuite(name, command, cwd) {
+  console.log(`\n${colors.bright}${colors.blue}=== Running ${name} ===${colors.reset}`)
+  const startTime = new Date().getTime()
 
-console.log('=== WebStore Test Suite Runner ===')
+  try {
+    const output = execSync(command, {
+      cwd,
+      stdio: 'pipe',
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        NODE_OPTIONS: '--experimental-vm-modules'
+      }
+    })
 
-// Common options for all Jasmine runs
-const jasmineOptions = {
-  env: {
-    ...process.env,
-    NODE_OPTIONS: '--experimental-vm-modules'
+    // Calculate elapsed time
+    const elapsedTime = ((new Date().getTime() - startTime) / 1000).toFixed(2)
+    console.log(`${colors.green}✅ ${name} passed${colors.reset} (${elapsedTime}s)`)
+
+    // Print any relevant output
+    console.log(output)
+
+    testResults.passed++
+    testResults.total++
+    return true
+  } catch (error) {
+    // Calculate elapsed time
+    const elapsedTime = ((new Date().getTime() - startTime) / 1000).toFixed(2)
+    console.error(`${colors.red}❌ ${name} failed${colors.reset} (${elapsedTime}s)`)
+
+    // Print any errors or output
+    if (error.stdout) console.error(error.stdout.toString())
+    if (error.stderr) console.error(error.stderr.toString())
+
+    testResults.failed++
+    testResults.total++
+    return false
   }
 }
 
-// Run server unit tests
-console.log('\n=== Running Server Unit Tests ===')
-try {
-  execSync('npx jasmine test/WebStore.unit.spec.js', {
-    cwd: SERVER_DIR,
-    stdio: 'inherit',
-    ...jasmineOptions
-  })
-  console.log('✅ Server unit tests passed')
-} catch (error) {
-  console.error('❌ Server unit tests failed')
-  process.exit(1)
-}
+// Run server unit tests - uses existing jasmine.json config
+const serverUnitSuccess = runTestSuite(
+  'Server Unit Tests',
+  'npx jasmine --config=jasmine.json test/WebStore.unit.spec.js',
+  SERVER_DIR
+)
 
-// Run server integration tests
-console.log('\n=== Running Server Integration Tests ===')
-try {
-  execSync('npx jasmine test/WebStore.integration.spec.js', {
-    cwd: SERVER_DIR,
-    stdio: 'inherit',
-    ...jasmineOptions
-  })
-  console.log('✅ Server integration tests passed')
-} catch (error) {
-  console.error('❌ Server integration tests failed')
-  process.exit(1)
-}
+// Run server integration tests - uses existing jasmine.json config
+const serverIntegrationSuccess = runTestSuite(
+  'Server Integration Tests',
+  'npx jasmine --config=jasmine.json test/WebStore.integration.spec.js',
+  SERVER_DIR
+)
 
-// Run client unit tests
-console.log('\n=== Running Client Unit Tests ===')
-try {
-  execSync('npx jasmine test/wstore.unit.spec.js', {
-    cwd: CLIENT_DIR,
-    stdio: 'inherit',
-    ...jasmineOptions
-  })
-  console.log('✅ Client unit tests passed')
-} catch (error) {
-  console.error('❌ Client unit tests failed')
-  process.exit(1)
-}
+// Run client unit tests - uses existing jasmine.json config
+const clientUnitSuccess = runTestSuite(
+  'Client Unit Tests',
+  'npx jasmine --config=jasmine.json test/wstore.unit.spec.js',
+  CLIENT_DIR
+)
 
-// Run client integration tests
-console.log('\n=== Running Client Integration Tests ===')
-try {
-  execSync('npx jasmine test/wstore.integration.spec.js', {
-    cwd: CLIENT_DIR,
-    stdio: 'inherit',
-    ...jasmineOptions
-  })
-  console.log('✅ Client integration tests passed')
-} catch (error) {
-  console.error('❌ Client integration tests failed')
-  process.exit(1)
-}
+// Run client integration tests - uses existing jasmine.json config
+const clientIntegrationSuccess = runTestSuite(
+  'Client Integration Tests',
+  'npx jasmine --config=jasmine.json test/wstore.integration.spec.js',
+  CLIENT_DIR
+)
 
 // Run end-to-end tests
-console.log('\n=== Running End-to-End Tests ===')
-try {
-  execSync('npx jasmine test/e2e.spec.js', {
-    cwd: ROOT_DIR,
-    stdio: 'inherit',
-    ...jasmineOptions
-  })
-  console.log('✅ End-to-end tests passed')
-} catch (error) {
-  console.error('❌ End-to-end tests failed')
-  process.exit(1)
+if (serverUnitSuccess && serverIntegrationSuccess && clientUnitSuccess && clientIntegrationSuccess) {
+  const e2eSuccess = runTestSuite(
+    'End-to-End Tests',
+    'npx jasmine test/e2e.spec.js',
+    ROOT_DIR
+  )
+
+  if (!e2eSuccess) {
+    process.exit(1)
+  }
+} else {
+  console.log(`\n${colors.yellow}⚠️ Skipping End-to-End Tests due to failures in unit or integration tests${colors.reset}`)
 }
 
-console.log('\n=== All Tests Passed Successfully ===')
+// Print summary
+console.log(`\n${colors.bright}${colors.blue}=== Test Summary ===${colors.reset}`)
+console.log(`${colors.green}✅ Tests Passed: ${testResults.passed}/${testResults.total}${colors.reset}`)
+console.log(`${colors.red}❌ Tests Failed: ${testResults.failed}/${testResults.total}${colors.reset}`)
+
+// Exit with appropriate code
+if (testResults.failed === 0) {
+  console.log(`\n${colors.bright}${colors.green}=== All Tests Passed Successfully ===${colors.reset}`)
+  process.exit(0)
+} else {
+  console.log(`\n${colors.bright}${colors.red}=== Tests Completed with ${testResults.failed} Failures ===${colors.reset}`)
+  process.exit(1)
+}

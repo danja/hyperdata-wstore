@@ -36,12 +36,14 @@ webstore-project/
 Before running the tests, you need to install the necessary dependencies:
 
 1. Install server dependencies:
+
    ```bash
    cd server
    npm install
    ```
 
 2. Install client dependencies:
+
    ```bash
    cd client
    npm install
@@ -126,3 +128,5 @@ If you encounter issues running the tests:
 2. Check that the server is not already running on the test ports (4500, 4501, 4510)
 3. Ensure you have the necessary permissions to create files in the test directories
 4. For Windows users, you may need to adjust file paths in the test scripts
+
+npm test -- server/test/WebStore.unit.spec.js

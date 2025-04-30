@@ -178,27 +178,10 @@ class WStoreClient {
   }
 }
 
-// Enhanced fetch mock handling for testing
+// Mock fetch for testing
 global.fetch = async (url, options) => {
   // This will be mocked by nock, but ensure we handle the responses correctly
   throw new Error('Fetch not mocked for this URL: ' + url)
-}
-
-// Helper to create a mock Response
-function createMockResponse(status, body, headers = {}) {
-  const responseHeaders = new Map(Object.entries(headers))
-
-  return {
-    ok: status >= 200 && status < 300,
-    status,
-    headers: responseHeaders,
-    text: async () => body,
-    body: Readable.from([body]),
-    buffer: async () => Buffer.from(body),
-    entries: function () {
-      return responseHeaders.entries()
-    }
-  }
 }
 
 describe('WStoreClient Unit Tests', () => {

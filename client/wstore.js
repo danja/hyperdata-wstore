@@ -60,7 +60,10 @@ class WStoreClient {
                         console.log(`File saved to ${outputFile}`)
                         resolve()
                     })
-                    fileStream.on('error', reject)
+                    fileStream.on('error', (err) => {
+                        console.error(`Error writing to file: ${err.message}`)
+                        reject(err)
+                    })
                 })
             } else {
                 // Display content if no output file specified
