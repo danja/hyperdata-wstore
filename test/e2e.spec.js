@@ -3,6 +3,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { execSync, spawn } from 'child_process'
 import { createServer } from 'http'
+import app from '../server/WebStore.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -27,7 +28,7 @@ const TEST_USERNAME = 'e2euser'
 const TEST_PASSWORD = 'e2epass'
 
 describe('End-to-End Tests', () => {
-  let serverProcess
+  let server
 
   beforeAll(async () => {
     // Create test directories
@@ -43,75 +44,43 @@ describe('End-to-End Tests', () => {
       fs.mkdirSync(E2E_STORAGE_DIR, { recursive: true })
     }
 
-    // Create test configuration
-    const configContent = `
-      // E2E Test config.js
-      export const config = {
-        storageDir: '${E2E_STORAGE_DIR.replace(/\\/g, '\\\\')}',
-        username: '${TEST_USERNAME}',
-        password: '${TEST_PASSWORD}'
-      };
-    `
-
-    fs.writeFileSync(TEST_CONFIG_PATH, configContent)
-
     // Create test files in the storage directory
     fs.writeFileSync(
       path.join(E2E_STORAGE_DIR, 'existing-file.txt'),
       'This is an existing file in the storage directory'
     )
 
-    // Start the server with test configuration
-    const env = {
-      ...process.env,
-      NODE_ENV: 'test',
-      STORAGE_DIR: E2E_STORAGE_DIR,
-      AUTH_USERNAME: TEST_USERNAME,
-      AUTH_PASSWORD: TEST_PASSWORD,
-      PORT: TEST_PORT
-    }
+    // Set environment variables
+    process.env.NODE_ENV = 'test'
+    process.env.STORAGE_DIR = E2E_STORAGE_DIR
+    process.env.AUTH_USERNAME = TEST_USERNAME
+    process.env.AUTH_PASSWORD = TEST_PASSWORD
+    process.env.PORT = TEST_PORT
 
-    // Wait for the server to start
-    await new Promise((resolve, reject) => {
-      serverProcess = spawn('node', [SERVER_PATH], {
-        cwd: SERVER_DIR,
-        env,
-        stdio: 'pipe'
-      })
+    // Start the server
+    server = app.listen(TEST_PORT)
 
-      // Handle server output
-      serverProcess.stdout.on('data', (data) => {
-        const output = data.toString()
-        // Look for the server start message
-        if (output.includes('WebStore server running')) {
-          // Wait a bit to ensure the server is fully started
-          setTimeout(resolve, 500)
-        }
-      })
-
-      serverProcess.stderr.on('data', (data) => {
-        console.error(`Server Error: ${data.toString()}`)
-      })
-
-      serverProcess.on('error', (err) => {
-        reject(new Error(`Failed to start server: ${err.message}`))
-      })
-
-      // If the server doesn't start in 5 seconds, continue anyway
-      setTimeout(resolve, 5000)
-    })
+    // Wait a moment for server to fully start
+    await new Promise(resolve => setTimeout(resolve, 500))
   })
 
   afterAll(() => {
     // Stop the server
-    if (serverProcess) {
-      serverProcess.kill()
+    if (server) {
+      server.close()
     }
 
     // Clean up test directories
     if (fs.existsSync(E2E_TEMP_DIR)) {
       fs.rmSync(E2E_TEMP_DIR, { recursive: true, force: true })
     }
+
+    // Reset environment variables
+    delete process.env.NODE_ENV
+    delete process.env.STORAGE_DIR
+    delete process.env.AUTH_USERNAME
+    delete process.env.AUTH_PASSWORD
+    delete process.env.PORT
   })
 
   describe('Basic Operations', () => {

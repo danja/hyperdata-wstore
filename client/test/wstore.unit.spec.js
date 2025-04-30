@@ -57,8 +57,8 @@ class WStoreClient {
         }
 
         // For tests, use a simpler approach than streaming
-        const content = await response.text()
-        fs.writeFileSync(outputFile, content)
+        const buffer = await response.arrayBuffer()
+        fs.writeFileSync(outputFile, Buffer.from(buffer))
         console.log(`File saved to ${outputFile}`)
       } else {
         // Display content if no output file specified
@@ -178,10 +178,16 @@ class WStoreClient {
   }
 }
 
-// Mock fetch for testing
+// Mock fetch for testing with proper buffer handling
 global.fetch = async (url, options) => {
   // This will be mocked by nock, but ensure we handle the responses correctly
   throw new Error('Fetch not mocked for this URL: ' + url)
+}
+
+// Add a buffer method to Response prototype for tests
+Response.prototype.buffer = async function () {
+  const arrayBuffer = await this.arrayBuffer()
+  return Buffer.from(arrayBuffer)
 }
 
 describe('WStoreClient Unit Tests', () => {

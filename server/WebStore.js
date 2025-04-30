@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
-const PORT = 4500
+const PORT = process.env.PORT || 4500
 const STORAGE_DIR = config.storageDir || path.join(__dirname, 'storage')
 
 // Ensure storage directory exists
@@ -26,7 +26,6 @@ const requireAuth = basicAuth({
     unauthorizedResponse: 'Authentication required'
 })
 
-// IMPORTANT FIX: Changed middleware order - raw parser first to handle all content types
 // Parse raw body for all content types
 app.use(express.raw({
     type: '*/*',
@@ -128,6 +127,10 @@ app.delete('/:filepath(*)', requireAuth, (req, res) => {
     }
 })
 
-app.listen(PORT, () => {
-    console.log(`WebStore server running on port ${PORT}`)
-})
+if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`WebStore server running on port ${PORT}`)
+    })
+}
+
+export default app

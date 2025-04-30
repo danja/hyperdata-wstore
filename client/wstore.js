@@ -52,19 +52,9 @@ class WStoreClient {
                 }
 
                 // Save file
-                const fileStream = fs.createWriteStream(outputFile)
-                response.body.pipe(fileStream)
-
-                return new Promise((resolve, reject) => {
-                    fileStream.on('finish', () => {
-                        console.log(`File saved to ${outputFile}`)
-                        resolve()
-                    })
-                    fileStream.on('error', (err) => {
-                        console.error(`Error writing to file: ${err.message}`)
-                        reject(err)
-                    })
-                })
+                const buffer = await response.buffer()
+                fs.writeFileSync(outputFile, buffer)
+                console.log(`File saved to ${outputFile}`)
             } else {
                 // Display content if no output file specified
                 const content = await response.text()
