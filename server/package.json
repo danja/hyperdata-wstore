@@ -1,0 +1,15 @@
+{
+  "name": "webstore",
+  "version": "1.0.0",
+  "description": "HTTP server for file storage",
+  "main": "WebStore.js",
+  "type": "module",
+  "scripts": {
+    "start": "node WebStore.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-basic-auth": "^1.2.1",
+    "mime-types": "^2.1.35"
+  }
+}

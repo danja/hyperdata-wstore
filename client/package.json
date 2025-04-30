@@ -1,0 +1,18 @@
+{
+    "name": "wstore",
+    "version": "1.0.0",
+    "description": "Command-line client for WebStore",
+    "main": "wstore.js",
+    "type": "module",
+    "bin": {
+      "wstore": "./wstore.js"
+    },
+    "scripts": {
+      "start": "node wstore.js"
+    },
+    "dependencies": {
+      "mime-types": "^2.1.35",
+      "node-fetch": "^3.3.2",
+      "yargs": "^17.7.2"
+    }
+  }

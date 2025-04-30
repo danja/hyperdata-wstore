@@ -1,3 +1,7 @@
+# wstore-specific
+
+server/config.js
+
 # Logs
 logs
 *.log
