@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import nock from 'nock'
+import { Readable } from 'stream'
 
 import {
   setupMockFileSystem,
@@ -55,8 +56,9 @@ class WStoreClient {
           fs.mkdirSync(dir, { recursive: true })
         }
 
-        // Save file
-        fs.writeFileSync(outputFile, await response.buffer())
+        // For tests, use a simpler approach than streaming
+        const content = await response.text()
+        fs.writeFileSync(outputFile, content)
         console.log(`File saved to ${outputFile}`)
       } else {
         // Display content if no output file specified
@@ -176,10 +178,27 @@ class WStoreClient {
   }
 }
 
-// Mock fetch for testing
-global.fetch = (url, options) => {
-  // This will be mocked by nock
+// Enhanced fetch mock handling for testing
+global.fetch = async (url, options) => {
+  // This will be mocked by nock, but ensure we handle the responses correctly
   throw new Error('Fetch not mocked for this URL: ' + url)
+}
+
+// Helper to create a mock Response
+function createMockResponse(status, body, headers = {}) {
+  const responseHeaders = new Map(Object.entries(headers))
+
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    headers: responseHeaders,
+    text: async () => body,
+    body: Readable.from([body]),
+    buffer: async () => Buffer.from(body),
+    entries: function () {
+      return responseHeaders.entries()
+    }
+  }
 }
 
 describe('WStoreClient Unit Tests', () => {
@@ -198,6 +217,7 @@ describe('WStoreClient Unit Tests', () => {
     // Intercept console methods
     spyOn(console, 'log')
     spyOn(console, 'error')
+    spyOn(process, 'exit').and.callFake(() => { })
   })
 
   afterEach(() => {
@@ -236,9 +256,6 @@ describe('WStoreClient Unit Tests', () => {
       nock(baseUrl)
         .get('/non-existent-file.txt')
         .reply(404, 'File not found')
-
-      // Spy on process.exit
-      spyOn(process, 'exit')
 
       await client.get('non-existent-file.txt')
 
@@ -296,9 +313,6 @@ describe('WStoreClient Unit Tests', () => {
     })
 
     it('should handle errors when the local file does not exist', async () => {
-      // Spy on process.exit
-      spyOn(process, 'exit')
-
       await client.post('non-existent-local-file.txt', 'remote-file.txt')
 
       // Verify error handling
@@ -316,9 +330,6 @@ describe('WStoreClient Unit Tests', () => {
       nock(baseUrl)
         .post('/remote-file.txt')
         .reply(500, 'Internal server error')
-
-      // Spy on process.exit
-      spyOn(process, 'exit')
 
       await client.post(localFilePath, 'remote-file.txt')
 
@@ -352,9 +363,6 @@ describe('WStoreClient Unit Tests', () => {
     })
 
     it('should handle errors when the local file does not exist', async () => {
-      // Spy on process.exit
-      spyOn(process, 'exit')
-
       await client.put('non-existent-local-file.txt', 'remote-file.txt')
 
       // Verify error handling
@@ -386,9 +394,6 @@ describe('WStoreClient Unit Tests', () => {
       nock(baseUrl)
         .delete('/non-existent-file.txt')
         .reply(404, 'File not found')
-
-      // Spy on process.exit
-      spyOn(process, 'exit')
 
       await client.delete('non-existent-file.txt')
 
