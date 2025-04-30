@@ -1,0 +1,19 @@
+{
+  "name": "webstore-project",
+  "version": "1.0.0",
+  "description": "WebStore server and client with testing suite",
+  "type": "module",
+  "scripts": {
+    "test": "node run-tests.js",
+    "test:server": "cd server && npm test",
+    "test:client": "cd client && npm test",
+    "test:e2e": "NODE_OPTIONS=--experimental-vm-modules npx jasmine test/e2e.spec.js",
+    "start:server": "cd server && npm start",
+    "start:client": "cd client && npm start",
+    "rp": "repomix -c repomix.config.json ."
+  },
+  "devDependencies": {
+    "jasmine": "^5.1.0",
+    "repomix": "^0.3.3"
+  }
+}

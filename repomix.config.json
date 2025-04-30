@@ -1,0 +1,32 @@
+{
+    "output": {
+        "filePath": "./repomix-wstore.md",
+        "headerText": "WebStore Source Code",
+        "removeComments": false
+    },
+    "include": [
+        "**/*"
+    ],
+    "ignore": {
+        "useDefaultPatterns": false,
+        "customPatterns": [
+            "**/package-lock.json",
+            ".git",
+            ".gitignore",
+            "LICENSE",
+            "data",
+            "docs",
+            ".nyc_output",
+            ".env",
+            "**/_*",
+            "**/node_modules",
+            "node_modules",
+            "*.log",
+            "**/*repomix*",
+            "**/*.html",
+            "**/data/*",
+            "**/*copy*.js",
+            "**/conversations.json"
+        ]
+    }
+}
