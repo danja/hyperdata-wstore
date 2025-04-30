@@ -1,8 +1,10 @@
 # wstore
 
-A simple Node.js HTTP server and command-line client for file storage and retrieval. Supports HTTP GET, POST, PUT, DELETE ([RDF 9112](https://www.rfc-editor.org/rfc/rfc9112) with HTTP Basic ([RFC 7617](https://www.rfc-editor.org/rfc/rfc7617) authentication. With example nginx config for proxying (you will want the server to do HTTPS for bare minimum acceptible security).
+A simple Node.js HTTP server and command-line client for file storage and retrieval. Supports HTTP GET, POST, PUT, DELETE ([RDF 9112](https://www.rfc-editor.org/rfc/rfc9112) with HTTP Basic ([RFC 7617](https://www.rfc-editor.org/rfc/rfc7617) authentication. Includes example nginx config for proxying (you will want the server to do HTTPS for bare minimum acceptible security).
 
-**Status 2025-04-30 :** new today! Largely untested, but the POST/GET example below works. _**Not production-ready.**_
+**Status 2025-04-30 :** new today! Largely untested, but the POST/GET example below works.
+
+_**Not production-ready.**_
 
 **tl;dr**
 
