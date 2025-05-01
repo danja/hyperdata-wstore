@@ -11,8 +11,8 @@ import {
   createTestFile,
   fileExists,
   readTestFile
-} from './helpers/test-helper.js'
-import { WStoreClient } from '../wstore.js'
+} from '../../test/helpers/client-helper.js'
+import { WStoreClient } from '../../client/wstore.js'; // Corrected path
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -25,6 +25,7 @@ Response.prototype.buffer = function () {
 describe('WStoreClient Unit Tests', () => {
   const baseUrl = 'http://localhost:4500/'
   let client
+  let errorExpected
 
   beforeEach(() => {
     // Set up mock file system for each test
@@ -39,12 +40,18 @@ describe('WStoreClient Unit Tests', () => {
     spyOn(console, 'log').and.callThrough()
     spyOn(console, 'error').and.callThrough()
     spyOn(process, 'exit').and.callFake(() => { })
+    errorExpected = false
   })
 
   afterEach(() => {
     // Clean up after each test
     cleanupMockFileSystem()
     nock.cleanAll()
+
+    // If error was not expected, fail the test if console.error was called
+    if (!errorExpected && console.error.calls.any()) {
+      fail('Unexpected error logged: ' + console.error.calls.allArgs().map(args => args.join(' ')).join('\n'));
+    }
   })
 
   describe('get()', () => {
@@ -73,6 +80,7 @@ describe('WStoreClient Unit Tests', () => {
     })
 
     it('should handle HTTP errors', async () => {
+      errorExpected = true;
       // Mock the fetch call with an error response
       nock(baseUrl)
         .get('/non-existent-file.txt')
@@ -134,6 +142,7 @@ describe('WStoreClient Unit Tests', () => {
     })
 
     it('should handle errors when the local file does not exist', async () => {
+      errorExpected = true;
       await client.post('non-existent-local-file.txt', 'remote-file.txt')
 
       // Verify error handling
@@ -144,6 +153,7 @@ describe('WStoreClient Unit Tests', () => {
     })
 
     it('should handle HTTP errors during POST', async () => {
+      errorExpected = true;
       // Create test file
       const localFilePath = getTestFilePath('local-file.txt')
 
@@ -184,6 +194,7 @@ describe('WStoreClient Unit Tests', () => {
     })
 
     it('should handle errors when the local file does not exist', async () => {
+      errorExpected = true;
       await client.put('non-existent-local-file.txt', 'remote-file.txt')
 
       // Verify error handling
@@ -211,6 +222,7 @@ describe('WStoreClient Unit Tests', () => {
     })
 
     it('should handle HTTP errors during DELETE', async () => {
+      errorExpected = true;
       // Mock the fetch call with an error response
       nock(baseUrl)
         .delete('/non-existent-file.txt')

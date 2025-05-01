@@ -51,8 +51,9 @@ class WStoreClient {
                     fs.mkdirSync(dir, { recursive: true })
                 }
 
-                // Get response as buffer for binary compatibility
-                const buffer = await response.buffer()
+                // Use arrayBuffer() instead of buffer() to avoid deprecation warning
+                const arrayBuffer = await response.arrayBuffer();
+                const buffer = Buffer.from(arrayBuffer);
                 fs.writeFileSync(outputFile, buffer)
                 console.log(`File saved to ${outputFile}`)
             } else {
@@ -62,7 +63,11 @@ class WStoreClient {
             }
         } catch (error) {
             console.error(`Error getting file: ${error.message}`)
-            process.exit(1)
+            if (this._shouldExitOnError()) {
+                process.exit(1)
+            } else {
+                throw error
+            }
         }
     }
 
@@ -107,22 +112,31 @@ class WStoreClient {
             }
         } catch (error) {
             console.error(`Error deleting file: ${error.message}`)
-            process.exit(1)
+            if (this._shouldExitOnError()) {
+                process.exit(1)
+            } else {
+                throw error
+            }
         }
     }
 
     async _sendFile(method, localFilePath, remoteFilePath) {
-        if (!fs.existsSync(localFilePath)) {
-            console.error(`Local file ${localFilePath} not found`)
-            process.exit(1)
-        }
-
-        const url = new URL(remoteFilePath, this.baseUrl)
-        // Use octet-stream for consistent binary handling
-        const contentType = 'application/octet-stream'
-        const fileContent = fs.readFileSync(localFilePath)
-
         try {
+            if (!fs.existsSync(localFilePath)) {
+                const errMsg = `Local file ${localFilePath} not found`
+                console.error(errMsg)
+                if (this._shouldExitOnError()) {
+                    process.exit(1)
+                } else {
+                    throw new Error(errMsg)
+                }
+            }
+
+            const url = new URL(remoteFilePath, this.baseUrl)
+            // Use octet-stream for consistent binary handling
+            const contentType = 'application/octet-stream'
+            const fileContent = fs.readFileSync(localFilePath)
+
             const response = await fetch(url.toString(), {
                 method,
                 headers: {
@@ -156,7 +170,11 @@ class WStoreClient {
             }
         } catch (error) {
             console.error(`Error ${method === 'POST' ? 'creating' : 'updating'} file: ${error.message}`)
-            process.exit(1)
+            if (this._shouldExitOnError()) {
+                process.exit(1)
+            } else {
+                throw error
+            }
         }
     }
 
@@ -170,6 +188,12 @@ class WStoreClient {
         }
 
         return headers
+    }
+
+    _shouldExitOnError() {
+        // If process.env.NODE_ENV is 'test', do not exit (for testability)
+        // Otherwise, exit (for CLI usage)
+        return process.env.NODE_ENV !== 'test'
     }
 }
 

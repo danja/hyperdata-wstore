@@ -1,4 +1,4 @@
-import { WStoreClient } from '../wstore.js';
+import { WStoreClient } from '../../client/wstore.js';
 
 describe('Simple Test', () => {
   it('should be able to create a WStoreClient instance', () => {

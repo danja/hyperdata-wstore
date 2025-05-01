@@ -1,37 +1,15 @@
 ## Pass
 
-npm test -- test/simple.spec.js
-npm test -- server/test/simple.spec.js
-npm test -- client/test/simple.spec.js
-npm test -- server/test/WebStore.unit.spec.js
-npm test -- server/test/WebStore.integration.spec.js
+npm test -- test/e2e/simple.spec.js
+npm test -- test/server/simple.spec.js
+npm test -- test/client/simple.spec.js
+npm test -- test/server/WebStore.unit.spec.js
+npm test -- test/server/WebStore.integration.spec.js
+npm test -- test/client/wstore.unit.spec.js
 
 # Fail
 
+npm test -- test/e2e/e2e-core.spec.js #  post, get, delete
+npm test -- test/client/wstore.integration.spec.js # Claude
+npm test -- test/e2e/e2e.spec.js # Claude
 
-npm test -- client/test/wstore.unit.spec.js
-npm test -- client/test/wstore.integration.spec.js
-npm test -- test/e2e.spec.js
-
-BASE_URL="http://localhost:4500/"
-AUTH="admin:password"
-
-./wstore.js --baseUrl=$BASE_URL --auth=$AUTH post ./hello.json tests/hello.json
-
-# File ./hello.json created successfully at tests/hello.json
-
-./wstore.js -i get tests/hello.json
-
-# HTTP Response Headers:
-
-# content-type: application/json
-
-# ...
-
-# { "hello" : "world" }
-
-./wstore.js -h
-
-# // see for yourself
-
-./wstore.js -i --auth=$AUTH delete tests/hello.json
