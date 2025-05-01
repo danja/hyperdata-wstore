@@ -1,5 +1,35 @@
 # WebStore Test Suite
 
+ Right now failing tests are renamed to hide them from Jasmine. The manual test in [post-test.md](post-test.md) is what can be trusted.
+
+
+## Pass
+
+Trivial Jasmine setup tests :
+
+npm test -- test/e2e/simple.spec.js
+npm test -- test/server/simple.spec.js
+npm test -- test/client/simple.spec.js
+
+Proper tests :
+
+npm test -- test/server/WebStore.integration.spec.js
+
+# Fail
+
+npm test -- test/client/wstore.unit.spec.js # silly when run isolated
+npm test -- test/server/WebStore.unit.spec.js
+
+The following all mess up by trying to run the server in the same thread:
+
+npm test -- test/e2e/e2e-core.spec.js #  post, get, delete
+npm test -- test/client/wstore.integration.spec.js # Claude
+npm test -- test/e2e/e2e.spec.js # Claude
+
+---
+
+The stuff below was written by Claude in a previous pass.
+
 This test suite provides comprehensive testing for the WebStore server and client components. It includes unit tests, integration tests, and end-to-end tests to ensure the functionality works as expected.
 
 ## Test Structure

@@ -10,6 +10,10 @@
     "ignore": {
         "useDefaultPatterns": false,
         "customPatterns": [
+            "test/**/*.no.*",
+            "client/_*",
+            "server/_*",
+            "_*",
             "**/package-lock.json",
             ".git",
             ".gitignore",
@@ -18,6 +22,7 @@
             "docs",
             ".nyc_output",
             ".env",
+            
             "**/_*",
             "**/node_modules",
             "node_modules",

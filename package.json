@@ -1,24 +1,29 @@
 {
   "name": "wstore",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "WebStore server and client",
   "type": "module",
   "scripts": {
     "test": "jasmine --config=jasmine.json",
-    "test:server": "cd server && npm test",
-    "test:client": "cd client && npm test",
-    "test:e2e": "jasmine  test/e2e.spec.js",
-    "start:server": "cd server && npm start",
-    "start:client": "cd client && npm start"
+    "start": "node server/WebStore.js",
+    "stop": "TODO",
+    "rp": "repomix -c repomix.config.json .",
+    "docs": "jsdoc -c jsdoc.json"
   },
   "devDependencies": {
-    "express-basic-auth": "^1.2.1",
     "jasmine": "^5.1.0",
+    "jsdoc": "^4.0.4",
     "mock-fs": "^5.5.0",
     "nock": "^14.0.4",
-    "supertest": "^7.1.0"
+    "repomix": "^0.3.3"
   },
   "dependencies": {
-    "body-parser": "^2.2.0"
-  }
+    "express": "^4.21.2",
+    "express-basic-auth": "^1.2.1",
+    "mime-types": "^3.0.1",
+    "node-fetch": "^3.3.2",
+    "yargs": "^17.7.2"
+  },
+  "author": "Danny Ayers <danny.ayers@gmail.com> (https://danny.ayers.name)",
+  "license": "MIT"
 }

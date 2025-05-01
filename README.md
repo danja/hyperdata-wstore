@@ -258,3 +258,10 @@ webstore-project/
 └── nginx/                       # NGINX configuration (for reference during dev)
     └── webstorage.conf          # Will be moved to /etc/nginx/sites-available/ in production
 ```
+
+## Troubleshooting
+
+```sh
+rm -rf node_modules package-lock.json
+npm install
+```
