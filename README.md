@@ -11,7 +11,16 @@ _**Not production-ready.**_
 
 **tl;dr**
 
+In one terminal run :
 ```bash
+cd server
+node WebStore.js
+```
+In another run :
+
+```bash
+cd client
+
 BASE_URL="http://localhost:4500/"
 AUTH="admin:password"
 
