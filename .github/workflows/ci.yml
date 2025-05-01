@@ -12,9 +12,24 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm install
-      - run: npm test
+
+      - name: Install dependencies (server)
+        run: |
+          cd server
+          npm install
+
+      - name: Install dependencies (client)
+        run: |
+          cd client
+          npm install
+
+      - name: Copy example config
+        run: cp server/config.example.js server/config.js
+
+      - name: Run tests
+        run: npm test
