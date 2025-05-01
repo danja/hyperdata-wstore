@@ -1,3 +1,9 @@
+// Set environment variables for testing BEFORE importing app
+process.env.NODE_ENV = 'test'
+process.env.STORAGE_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'test-storage')
+process.env.AUTH_USERNAME = 'testuser'
+process.env.AUTH_PASSWORD = 'testpass'
+
 import fs from 'fs'
 import path from 'path'
 import request from 'supertest'
@@ -10,14 +16,14 @@ import {
   fileExists,
   readTestFile
 } from './helpers/test-helper.js'
-import app from '../WebStore.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const TEST_STORAGE_DIR = path.join(__dirname, 'test-storage')
+let app // Will be assigned after env vars are set
 
 describe('WebStore Integration Tests', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     // Set environment variables for testing
     process.env.NODE_ENV = 'test'
     process.env.STORAGE_DIR = TEST_STORAGE_DIR
@@ -26,6 +32,10 @@ describe('WebStore Integration Tests', () => {
 
     // Create test storage directory
     createTestStorageDir()
+
+    // Import app after env vars are set
+    const imported = await import('../WebStore.js')
+    app = imported.default
   })
 
   afterAll(() => {

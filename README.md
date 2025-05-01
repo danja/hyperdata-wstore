@@ -58,7 +58,7 @@ cd webstore-project/client
 npm install
 chmod +x wstore.js
 
-#### Test with:
+#### Quick Test
 ```sh
 ./wstore.js --baseUrl=http://localhost:4500/ get hello.txt
 ````

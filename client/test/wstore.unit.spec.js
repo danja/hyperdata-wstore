@@ -129,7 +129,7 @@ describe('WStoreClient Unit Tests', () => {
 
       // Verify console output
       expect(console.log).toHaveBeenCalledWith(
-        'File local-file.txt created successfully at remote-file.txt'
+        `File ${localFilePath} created successfully at remote-file.txt`
       )
     })
 
@@ -179,7 +179,7 @@ describe('WStoreClient Unit Tests', () => {
 
       // Verify console output
       expect(console.log).toHaveBeenCalledWith(
-        'File local-file.txt updated successfully at remote-file.txt'
+        `File ${localFilePath} updated successfully at remote-file.txt`
       )
     })
 
