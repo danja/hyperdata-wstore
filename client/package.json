@@ -17,6 +17,6 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "nock": "^13.4.0"
+    "nock": "^13.5.6"
   }
 }

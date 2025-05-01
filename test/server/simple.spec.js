@@ -1,4 +1,4 @@
-import app from '../WebStore.js';
+import app from '../../server/WebStore.js';
 
 describe('Simple Test', () => {
   it('should have an Express app instance', () => {

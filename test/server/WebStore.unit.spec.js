@@ -9,7 +9,7 @@ import {
   setupMockFileSystem,
   cleanupMockFileSystem,
   getTestConfig
-} from './helpers/test-helper.js'
+} from '../../test/helpers/server-helper.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -20,9 +20,9 @@ const mockConfig = getTestConfig()
 describe('WebStore Unit Tests', () => {
   let app
 
-  // Before all tests, set up the mock file system
+  // Before all tests, clean up any previous mock file system (just in case)
   beforeAll(() => {
-    setupMockFileSystem()
+    cleanupMockFileSystem()
   })
 
   // After all tests, clean up the mock file system
@@ -129,6 +129,9 @@ describe('WebStore Unit Tests', () => {
         res.status(500).send(`Error deleting file: ${err.message}`)
       }
     })
+
+    // Set up the mock file system after all middleware/routes are loaded
+    setupMockFileSystem()
   })
 
   describe('GET /:filepath', () => {

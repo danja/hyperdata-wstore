@@ -15,7 +15,7 @@ import {
   createTestFile,
   fileExists,
   readTestFile
-} from './helpers/test-helper.js'
+} from '../../test/helpers/server-helper.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -34,7 +34,7 @@ describe('WebStore Integration Tests', () => {
     createTestStorageDir()
 
     // Import app after env vars are set
-    const imported = await import('../WebStore.js')
+    const imported = await import('../../server/WebStore.js')
     app = imported.default
   })
 

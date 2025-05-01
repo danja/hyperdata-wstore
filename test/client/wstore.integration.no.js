@@ -3,6 +3,8 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { execSync } from 'child_process'
 import nock from 'nock'
+import http from 'http'
+import app from '../../server/WebStore.js'
 
 import {
   setupMockFileSystem,
@@ -12,7 +14,7 @@ import {
   fileExists,
   readTestFile,
   createBinaryTestData
-} from './helpers/test-helper.js'
+} from '../helpers/client-helper.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -20,20 +22,43 @@ const CLIENT_PATH = path.join(__dirname, '..', 'wstore.js')
 
 describe('WStore Client Integration Tests', () => {
   const baseUrl = 'http://localhost:4500/'
+  let server
+
+  beforeAll(done => {
+    // Start the real WebStore server on port 4500
+    server = http.createServer(app)
+    server.listen(4500, done)
+  })
+
+  afterAll(done => {
+    // Stop the server after all tests
+    if (server) {
+      server.close(done)
+    } else {
+      done()
+    }
+  })
 
   beforeEach(() => {
-    // Set up mock file system
-    setupMockFileSystem()
+    // Ensure temp directory exists (real FS)
+    if (!fs.existsSync(path.join(__dirname, 'temp'))) {
+      fs.mkdirSync(path.join(__dirname, 'temp'), { recursive: true })
+    }
 
-    // Create test files
+    // Create test files on real FS
     createTestFile('test-data.txt', 'Test data for upload')
     createTestFile('test-data.json', JSON.stringify({ test: 'data' }))
     createTestFile('test-binary.bin', createBinaryTestData(256))
   })
 
   afterEach(() => {
-    // Clean up after each test
-    cleanupMockFileSystem()
+    // Remove all files in temp directory after each test (real FS cleanup)
+    const tempDir = path.join(__dirname, 'temp')
+    if (fs.existsSync(tempDir)) {
+      for (const file of fs.readdirSync(tempDir)) {
+        fs.unlinkSync(path.join(tempDir, file))
+      }
+    }
     nock.cleanAll()
   })
 

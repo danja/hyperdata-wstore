@@ -1,35 +1,20 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import mockFs from 'mock-fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const TEST_STORAGE_DIR = path.join(__dirname, '..', 'test-storage')
+// Use test-storage directory relative to the test file (e.g., test/server/test-storage)
+const TEST_STORAGE_DIR = path.join(__dirname, '../server/test-storage')
 
-// Helper to set up mock file system
+// Helper to set up test file system (real FS only)
 export function setupMockFileSystem() {
-  // Create a real directory first (needed for path resolution)
-  if (!fs.existsSync(TEST_STORAGE_DIR)) {
-    fs.mkdirSync(TEST_STORAGE_DIR, { recursive: true })
-  }
-
-  // Apply mock filesystem after creating real directory
-  mockFs({
-    [TEST_STORAGE_DIR]: {
-      'existing-file.txt': Buffer.from('This is an existing file for testing'),
-      'directory': {
-        'nested-file.txt': Buffer.from('This is a nested file')
-      }
-    },
-    // Keep node_modules available
-    'node_modules': mockFs.load(path.resolve(__dirname, '../../../node_modules'))
-  })
+  // No-op for integration tests; use real FS
 }
 
-// Helper to clean up the mock file system
+// Helper to clean up the mock file system (real FS only)
 export function cleanupMockFileSystem() {
-  mockFs.restore()
+  // No-op for integration tests; use real FS
 }
 
 // Helper to create a test configuration

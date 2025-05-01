@@ -20,9 +20,8 @@ export function setupMockFileSystem() {
       'local-file.txt': 'This is a local file for testing',
       'local-file.json': JSON.stringify({ test: 'data' }),
       'binary-file.bin': Buffer.from([0x00, 0x01, 0x02, 0x03])
-    },
-    // Keep node_modules available
-    'node_modules': mockFs.load(path.resolve(__dirname, '../../../node_modules'))
+    }
+    // node_modules entry removed; mock-fs will use the real node_modules
   })
 }
 

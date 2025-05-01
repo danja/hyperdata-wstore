@@ -12,7 +12,13 @@
     "start:client": "cd client && npm start"
   },
   "devDependencies": {
+    "express-basic-auth": "^1.2.1",
     "jasmine": "^5.1.0",
-    "mock-fs": "^5.5.0"
+    "mock-fs": "^5.5.0",
+    "nock": "^14.0.4",
+    "supertest": "^7.1.0"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.0"
   }
 }
