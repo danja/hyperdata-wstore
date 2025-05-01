@@ -39,6 +39,8 @@ AUTH="admin:password"
 # // see for yourself
 ```
 
+*most of the material below was written by Claude, so for now take it with a pinch of salt*
+
 ## Server Features
 
 - HTTP methods: GET, POST, PUT, DELETE
