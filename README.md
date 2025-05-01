@@ -1,4 +1,4 @@
-![Node.js CI](https://github.com/dannyayers/wstore/actions/workflows/ci.yml/badge.svg)
+![Node.js CI](https://github.com/danja/wstore/actions/workflows/ci.yml/badge.svg)
 
 # wstore
 
