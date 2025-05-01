@@ -22,6 +22,7 @@
     "express-basic-auth": "^1.2.1",
     "mime-types": "^3.0.1",
     "node-fetch": "^3.3.2",
+    "supertest": "^7.1.0",
     "yargs": "^17.7.2"
   },
   "author": "Danny Ayers <danny.ayers@gmail.com> (https://danny.ayers.name)",
