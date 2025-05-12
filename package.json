@@ -4,18 +4,18 @@
   "description": "WebStore server and client",
   "type": "module",
   "scripts": {
-    "test": "jasmine --config=jasmine.json",
+    "test": "vitest run test/",
+    "test:vitest": "vitest run test/",
     "start": "node server/WebStore.js",
     "stop": "TODO",
     "rp": "repomix -c repomix.config.json .",
     "docs": "jsdoc -c jsdoc.json"
   },
   "devDependencies": {
-    "jasmine": "^5.1.0",
     "jsdoc": "^4.0.4",
     "mock-fs": "^5.5.0",
-    "nock": "^14.0.4",
-    "repomix": "^0.3.3"
+    "repomix": "^0.3.3",
+    "vitest": "^3.1.3"
   },
   "dependencies": {
     "express": "^4.21.2",
