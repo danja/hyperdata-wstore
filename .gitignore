@@ -1,5 +1,7 @@
 # wstore-specific
 
+uploads/*
+
 server/config.js
 
 repomix-output.txt
