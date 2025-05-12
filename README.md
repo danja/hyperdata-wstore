@@ -10,7 +10,7 @@ Supports HTTP GET, POST, PUT, DELETE ([RFC 9112](https://www.rfc-editor.org/rfc/
 
 ---
 
-## tl;dr (Quickstart)
+## Quickstart
 
 1. Install dependencies for both server and client:
    ```bash
@@ -99,6 +99,25 @@ chmod +x wstore.js
 5. Restart nginx : `sudo systemctl nginx restart`
 6. Update configuration in `config.js` or set environment variables for production settings
 7. Install the client globally with `npm install -g` from the client directory or use it directly
+
+---
+
+## Environment Variables
+
+You can configure the server and client using a `.env` file in the project root. Example:
+
+```
+AUTH_USERNAME=testuser
+AUTH_PASSWORD=testpass
+STORAGE_DIR=server/storage
+default_baseUrl=http://localhost:4500/
+```
+
+- `AUTH_USERNAME` and `AUTH_PASSWORD`: Credentials for HTTP Basic authentication (server and client).
+- `STORAGE_DIR`: Directory for file storage on the server.
+- `default_baseUrl`: Default base URL for the client.
+
+The server and client will automatically use these values if present.
 
 ---
 
