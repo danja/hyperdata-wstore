@@ -2,46 +2,47 @@
 
 # wstore
 
-A cheap & cheerful Node.js HTTP server and companion command-line client for file storage and retrieval. 
+A cheap & cheerful Node.js HTTP server and minimal companion clients for file storage and retrieval.
 
-Supports HTTP GET, POST, PUT, DELETE ([RDF 9112](https://www.rfc-editor.org/rfc/rfc9112)) with HTTP Basic ([RFC 7617](https://www.rfc-editor.org/rfc/rfc7617)) authentication. Includes example nginx config for proxying (you will want the server to do HTTPS for bare minimum acceptible security).
+Supports HTTP GET, POST, PUT, DELETE ([RFC 9112](https://www.rfc-editor.org/rfc/rfc9112)) with HTTP Basic ([RFC 7617](https://www.rfc-editor.org/rfc/rfc7617)) authentication. Includes example nginx config for proxying (you will want the server to do HTTPS for bare minimum acceptable security).
 
+**Status 2025-05-12** : All tests passing, CI enabled, appears to work. _Not production-ready._
 
-**Status 2025-05-01** : appears to work but most tests are broken... 
+---
 
-_**Not production-ready.**_
+## tl;dr (Quickstart)
 
-**tl;dr**
+1. Install dependencies for both server and client:
+   ```bash
+   cd server && npm install
+   cd ../client && npm install
+   ```
+2. In one terminal run:
+   ```bash
+   cd server
+   node WebStore.js
+   ```
+3. In another terminal run:
+   ```bash
+   cd client
+   BASE_URL="http://localhost:4500/"
+   AUTH="admin:password"
+   ./wstore.js --baseUrl=$BASE_URL --auth=$AUTH post ./hello.json tests/hello.json
+   ./wstore.js -i get tests/hello.json
+   ./wstore.js -h
+   ```
 
-In one terminal run :
-```bash
-cd server
-node WebStore.js
-```
-In another run :
+---
 
-```bash
-cd client
+## Testing
 
-BASE_URL="http://localhost:4500/"
-AUTH="admin:password"
+- To run all tests locally (unit, integration, e2e):
+  ```bash
+  npm test
+  ```
+- All tests are run automatically on GitHub Actions (see badge above).
 
-./wstore.js --baseUrl=$BASE_URL --auth=$AUTH post ./hello.json tests/hello.json
-# File ./hello.json created successfully at tests/hello.json
-
-./wstore.js -i get tests/hello.json
-# HTTP Response Headers:
-# content-type: application/json
-# ...
-# { "hello" : "world" }
-
-./wstore.js -h
-# // see for yourself
-```
-
-(The above is in `demo.sh`)
-
-*most of the material below was written by Claude, so for now take it with a pinch of salt*
+---
 
 ## Server Features
 
@@ -57,6 +58,8 @@ AUTH="admin:password"
 - Maps between local files and server resources
 - Authentication support
 
+---
+
 ## Installation
 
 ### Server Setup
@@ -64,22 +67,25 @@ AUTH="admin:password"
 Copy `server/config.example.js` to `server/config.js`, add desired credentials
 
 ```bash
-cd webstore-project/server
+cd server
 npm install
 node WebStore.js
 ```
 
 ### Client Setup
 
-````bash
-cd webstore-project/client
+```bash
+cd client
 npm install
 chmod +x wstore.js
+```
 
 #### Quick Test
 ```sh
 ./wstore.js --baseUrl=http://localhost:4500/ get hello.txt
-````
+```
+
+---
 
 ## Deployment
 
@@ -93,6 +99,8 @@ chmod +x wstore.js
 5. Restart nginx : `sudo systemctl nginx restart`
 6. Update configuration in `config.js` or set environment variables for production settings
 7. Install the client globally with `npm install -g` from the client directory or use it directly
+
+---
 
 ## Client Usage
 
@@ -258,6 +266,8 @@ Once installed globally with `npm install -g`, you can use the client without th
 wstore --baseUrl=http://hyperdata.it/files get documents/report.pdf
 ```
 
+---
+
 ## Project Structure
 
 ```
@@ -276,6 +286,14 @@ webstore-project/
 └── nginx/                       # NGINX configuration (for reference during dev)
     └── webstorage.conf          # Will be moved to /etc/nginx/sites-available/ in production
 ```
+
+---
+
+## Contributing
+
+Pull requests are welcome! Please ensure all tests pass locally (`npm test`) before submitting a PR.
+
+---
 
 ## Troubleshooting
 
