@@ -1,12 +1,16 @@
 ![Node.js CI](https://github.com/danja/wstore/actions/workflows/ci.yml/badge.svg)
 
-# wstore
+# hyperdata-wstore
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/danja/hyperdata-wstore)
 
 A cheap & cheerful Node.js HTTP server and minimal companion clients for file storage and retrieval.
 
 Supports HTTP GET, POST, PUT, DELETE ([RFC 9112](https://www.rfc-editor.org/rfc/rfc9112)) with HTTP Basic ([RFC 7617](https://www.rfc-editor.org/rfc/rfc7617)) authentication. Includes example nginx config for proxying (you will want the server to do HTTPS for bare minimum acceptable security).
 
-**Status 2025-05-12** : All tests passing, CI enabled, appears to work. _Not production-ready._
+**Status 2025-05-16** : Renamed to hyperdata-wstore, published to npm, added DeepWiki badge.
+
+_Not production-ready, it may never be._
 
 ---
 
