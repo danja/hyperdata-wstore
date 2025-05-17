@@ -70,7 +70,9 @@ describe('WebStore server routes', () => {
         const res = await request(app)
             .put('/baz.txt')
             .set('Authorization', AUTH_HEADER)
-            .send('new content');
+            .set('Content-Type', 'application/octet-stream')
+            .set('Content-Length', '11')
+            .send(Buffer.from('new content'));
         expect(res.status).toBe(200);
         expect(fs.readFileSync(path.join(TEST_STORAGE_DIR, 'baz.txt')).toString()).toBe('new content');
     });

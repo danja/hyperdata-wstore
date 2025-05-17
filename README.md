@@ -43,6 +43,38 @@ node server/WebStore.js
 The repository includes additional features and examples that may not be available in the npm package.
 
 
+## Graceful Server Shutdown
+
+The server supports a secure shutdown endpoint for controlled termination. To shut down the server gracefully:
+
+- Send a POST request to `/shutdown` with HTTP Basic authentication.
+- The request body must be the exact string `STOP WEBSTORE` (plain text).
+- Example (Node.js):
+
+```js
+import http from 'http';
+
+const options = {
+  hostname: 'localhost',
+  port: 4500,
+  path: '/shutdown',
+  method: 'POST',
+  headers: {
+    'Authorization': 'Basic ' + Buffer.from('admin:password').toString('base64'),
+    'Content-Type': 'text/plain',
+    'Content-Length': Buffer.byteLength('STOP WEBSTORE')
+  }
+};
+
+const req = http.request(options, res => {
+  res.on('data', chunk => process.stdout.write(chunk));
+});
+req.write('STOP WEBSTORE');
+req.end();
+```
+
+If the credentials and shutdown command are correct, the server will respond and then terminate after a short delay.
+
 ## Use as a library
 
 Install the package using npm:
@@ -183,3 +215,7 @@ Set these environment variables:
 4. Add caching headers
 
 There are more detailed notes in [README-long.md](README-long.md).
+
+## Troubleshooting
+
+pkill -f "node server/WebStore.js" || true && node server/WebStore.js
