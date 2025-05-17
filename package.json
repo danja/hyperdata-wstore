@@ -3,13 +3,13 @@
   "version": "0.1.3",
   "description": "WebStore server and client",
   "type": "module",
-  "main": "lib/index.js",
+  "main": "server/WebStore.js",
   "exports": {
     ".": {
-      "import": "./lib/index.js",
-      "require": "./lib/index.js"
+      "import": "./server/WebStore.js",
+      "require": "./server/WebStore.js"
     },
-    "./server/WebStore": {
+    "./WebStore": {
       "import": "./server/WebStore.js",
       "require": "./server/WebStore.js"
     }
@@ -20,7 +20,7 @@
   "scripts": {
     "test": "vitest run test/",
     "test:vitest": "vitest run test/",
-    "start": "node lib/index.js",
+    "start": "node server/WebStore.js",
     "stop": "TODO",
     "rp": "repomix -c repomix.config.json .",
     "docs": "jsdoc -c jsdoc.json",

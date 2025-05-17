@@ -64,7 +64,7 @@ AUTH_PASSWORD=password
 
 
 ```javascript
-import { app, config } from 'hyperdata-wstore'
+import WebStore from 'hyperdata-wstore'
 
 // Optionally override configuration
 // process.env.PORT = '4500'
@@ -73,7 +73,7 @@ import { app, config } from 'hyperdata-wstore'
 // process.env.AUTH_PASSWORD = 'password'
 
 // Start the server
-const server = app.listen(config.port, config.host, () => {
+const server = WebStore.listen(config.port, config.host, () => {
     console.log(`WebStore server running at http://${config.host}:${config.port}`)
     console.log(`Storage directory: ${config.storageDir}`)
     console.log(`Authentication: ${config.auth.username}/${config.auth.password}`)
@@ -138,7 +138,7 @@ PORT=4500 hyperdata-wstore
 
 2. Start server:
    ```bash
-   node server/WebStore.js
+   npm start
    ```
 
 3. Store files:
