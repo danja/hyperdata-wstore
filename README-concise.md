@@ -1,19 +1,6 @@
-![Node.js CI](https://github.com/danja/wstore/actions/workflows/ci.yml/badge.svg)
+# WebStore - Static File Server
 
-# hyperdata-wstore
-
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/danja/hyperdata-wstore)
-
-A cheap & cheerful Node.js HTTP server and minimal companion clients for **file storage** and **retrieval**.
-
-Supports HTTP GET, POST, PUT, DELETE ([RFC 9112](https://www.rfc-editor.org/rfc/rfc9112)) with HTTP Basic ([RFC 7617](https://www.rfc-editor.org/rfc/rfc7617)) authentication. Includes example nginx config for proxying (you will want the server to do HTTPS for bare minimum acceptable security).
-Also has a companion node.js client for basic file operations as well as a demo showing use from a browser.
-
-**Status 2025-05-16** : Renamed to hyperdata-wstore, published to npm, added DeepWiki badge.
-
-_Not production-ready, it may never be - is primarily for research._
-
----
+A lightweight Node.js HTTP server for static file storage and retrieval.
 
 ## Quick Setup
 
@@ -67,5 +54,3 @@ Set these environment variables:
 2. Set up proper logging
 3. Configure timeouts
 4. Add caching headers
-
-There are more detailed notes in [README-long.md](README-long.md).
