@@ -1,17 +1,39 @@
 {
   "name": "hyperdata-wstore",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "WebStore server and client",
   "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    },
+    "./server/WebStore": {
+      "import": "./server/WebStore.js",
+      "require": "./server/WebStore.js"
+    }
+  },
+  "bin": {
+    "hyperdata-wstore": "./lib/index.js"
+  },
   "scripts": {
     "test": "vitest run test/",
     "test:vitest": "vitest run test/",
-    "start": "node server/WebStore.js",
+    "start": "node lib/index.js",
     "stop": "TODO",
     "rp": "repomix -c repomix.config.json .",
     "docs": "jsdoc -c jsdoc.json",
     "start:demo": "./start-both.sh"
   },
+  "files": [
+    "lib/*",
+    "server/*",
+    "demo/*",
+    "*.js",
+    "*.json",
+    "*.md"
+  ],
   "devDependencies": {
     "jsdoc": "^4.0.4",
     "mock-fs": "^5.5.0",

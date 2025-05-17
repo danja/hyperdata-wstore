@@ -1,5 +1,6 @@
 # wstore-specific
 
+test-wstore
 uploads/*
 
 server/config.js
